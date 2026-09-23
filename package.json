@@ -21,6 +21,12 @@
   "type": "module",
   "devDependencies": {
     "@fission-ai/openspec": "1.13.1",
-    "@matteeh/osq": "0.2.0"
+    "@matteeh/osq": "0.2.0",
+    "@types/node": "26.6.2",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "commander": "15.0.0"
   }
 }
