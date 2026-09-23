@@ -1,0 +1,24 @@
+schema: osq
+
+context: |
+  This project follows the osq profile of OpenSpec. Living capability specs
+  live under openspec/specs/<capability>/spec.md. In-flight changes live under
+  openspec/changes/<id>-<slug>/ with a proposal.md, delta specs, and tasks.md.
+  Runtime state is derived exclusively from .run/ markers, never from tasks.md.
+
+  Execution and archive authority belong strictly to osq: tasks are executed
+  only by osq watch after human approval, archiving is owned exclusively by osq
+  and never openspec archive, and checkboxes in tasks.md are write-only runner
+  projections that prevent bypassing the approval hash.
+
+rules:
+  proposal:
+    - "Follow the proposal template's sections in order: Goal, Verify, Non-goals, Surface, Contract, Human steps, Delta."
+    - Declare the change-level verify command in frontmatter; the human gate reads the proposal before approving.
+  specs:
+    - Write one delta spec per capability at specs/<capability>/spec.md.
+    - Use exactly four hashtags for #### Scenario: blocks with WHEN/THEN bullets.
+  tasks:
+    - Break work into small tasks/<n>.md execution units that each state a verify command.
+    - Keep tasks.md checkboxes as a write-only projection of runtime state.
+    - Execute tasks exclusively through osq watch; never edit tasks.md checkboxes and never run openspec archive.

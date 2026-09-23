@@ -1,0 +1,362 @@
+# ts-paas queue
+
+The first ten changes of ts-paas, the osq test project, as an osq brief queue. Copy this file to `openspec/queue.md` in the ts-paas repository.
+
+Each item's body becomes that change's `brief.md` word for word. Drive the run with `osq plan --next`, then run `/osq-plan <slug>` in Claude Code, review, and `osq approve`. Setup, the bake-off and what to record are in `paas-run-log.md`.
+
+osq reads only the `## [slug]` items below. Everything above the first item is for people.
+
+## [scaffold-and-cli] Scaffold and CLI skeleton
+
+Depends on: nothing
+
+Creates capability: `cli`.
+
+### Goal
+
+The repository becomes a TypeScript project with one fast `pnpm verify` and a `paas` CLI that prints its version and help. Every later change builds on this verify and this CLI.
+
+### Context
+
+- The repository has only what `osq init` wrote, a `package.json` from `pnpm init`, and a placeholder `verify` script that always fails.
+- Stack: Node 24, ESM, TypeScript strict, pnpm, commander for argument parsing, and `node:test` run through `tsx`.
+
+### Requirements
+
+- `package.json` names the package `ts-paas`, sets `"type": "module"`, requires Node 24 or later, and exposes a `paas` binary.
+- `pnpm verify` typechecks the project and runs every unit test. It needs no network and no Docker.
+- `pnpm build` compiles to `dist/`, and the `paas` binary runs from `dist/` when installed. Tests run the CLI from source.
+- `paas --version` prints the version from `package.json`.
+- `paas --help` lists commands with one-line descriptions.
+- An unknown command or bad flag prints usage to stderr and exits with code 2.
+- Every error prints as `paas: <message>` on stderr. Exit codes are 0 for success, 1 when the operation failed, and 2 for a usage error.
+- Commands that print data accept `-json` and then print only JSON to stdout. This change records the convention in the `cli` capability, and later commands follow it.
+
+### Non-goals
+
+- Any app, state or container behavior.
+- Linters or formatters beyond the TypeScript compiler.
+- Bundling.
+
+### Notes for planning
+
+- `package.json` and `tsconfig.json` belong to one task.
+- Test the CLI in-process or as a child process from source. No test may depend on `dist/`.
+- This change creates the `cli` capability, so its delta starts with a `## Purpose` section.
+
+## [runtime-interface] Container runtime interface and fake
+
+Depends on: scaffold-and-cli
+
+Creates capability: `container-runtime`.
+
+### Goal
+
+Everything in paas talks to containers through one `ContainerRuntime` interface. This change defines it, adds an in-memory fake that behaves like a small container engine, and adds a contract test suite that every runtime implementation must pass. No real engine is involved.
+
+### Context
+
+- Later changes build the deployment engine and ingress against this interface. The `docker-podman-adapter` item adds the Docker and Podman implementation, which must pass the same contract suite.
+
+### Requirements
+
+- The interface covers pinging the engine for its name and version, and pulling an image by reference.
+- It creates a container from a spec with name, image, environment, labels, network, internal port, restart policy, published ports bound to a host address, and named volumes mounted at paths.
+- It starts, stops with a timeout, removes and inspects a container, lists containers by label, reads a container's logs with tail and since options, and ensures a named network or volume exists.
+- Inspection returns the container's state as created, running or exited, its exit code, and when it started.
+- Failures surface as typed errors: image not found, container not found, name conflict and runtime unavailable. Each keeps the underlying message.
+- The fake is deterministic and in memory. Tests can script it: a pull that fails for a given image, a container that exits immediately with a given code, and a container that exits after a delay on an injected clock.
+- A contract suite, exported as one function that takes a runtime factory, registers `node:test` tests for every interface operation. `pnpm verify` runs it against the fake.
+- Every container paas creates carries the label `paas.managed=true`.
+
+### Non-goals
+
+- dockerode or any real engine.
+- Image builds.
+
+### Notes for planning
+
+- Only the adapter from the `docker-podman-adapter` item will ever import dockerode. Keep the interface free of dockerode types.
+- The injected clock is its own small interface, so later changes reuse it.
+- Published ports and volumes are here because Caddy needs them in the `ingress-caddy` item. Adding them now keeps that change from editing this interface.
+
+## [app-state] App state store
+
+Depends on: scaffold-and-cli
+
+Creates capability: `app-state`.
+
+### Goal
+
+paas remembers apps and their deployments in a local SQLite database, with versioned migrations and a small repository API that tests can run against an in-memory database.
+
+### Context
+
+- `node:sqlite` ships with Node and needs no native build step. It prints an experimental warning on first use.
+
+### Requirements
+
+- The store uses `node:sqlite`. The CLI suppresses the experimental warning so it never appears in normal output.
+- The database lives at `$PAAS_HOME/state.db`, defaulting to `~/.paas/state.db`, and is created on first use.
+- Migrations are numbered, applied in order in a transaction when the database opens, and recorded in a schema version table. Opening a database newer than the code knows fails with a clear message.
+- Apps have a name, image reference, internal port, optional hostname, environment variables, and created and updated timestamps.
+- Deployments have an id, the app name, the image reference, a status, the container id, an error message, and created and finished timestamps.
+- Deployment status is one of pending, pulling, starting, running, failed, stopped or replaced. Every status change records when it happened.
+- Repository functions cover creating, reading, listing, updating and deleting apps, and creating deployments, changing their status, and reading an app's latest deployment and its history.
+- The repository validates at its boundary. App names are lowercase letters, digits and hyphens, 1 to 40 characters, starting with a letter. Ports are 1 to 65535. Hostnames are valid DNS names.
+- Deleting an app with a running deployment fails.
+- Tests use in-memory databases.
+
+### Non-goals
+
+- Postgres.
+- Several processes writing at once. One CLI process at a time is the assumption until an API server exists.
+
+### Notes for planning
+
+- Keep all SQL in the store module.
+- Store timestamps as ISO 8601 strings.
+
+## [app-management-cli] App management CLI
+
+Depends on: app-state
+
+Modifies capability: `cli`. Reads: `app-state`.
+
+### Goal
+
+Users create, list, inspect, update and delete apps from the CLI. Nothing runs yet.
+
+### Requirements
+
+- `paas apps create <name> --image <ref> --port <n>` creates an app, with optional `-host <hostname>` and repeatable `-env KEY=VALUE`.
+- `paas apps list` prints a table of name, image, port, host and latest deployment status. `-json` prints an array.
+- `paas apps show <name>` prints one app with its environment variable names. Values are masked unless `-reveal` is passed, and `-json` follows the same masking.
+- `paas apps set <name>` changes the image, port or host, adds or replaces variables with `-env`, and removes them with `-unset-env KEY`.
+- `paas apps delete <name>` deletes an app that has no running deployment. Otherwise it fails with a message saying to stop the app first.
+- Validation errors name the field and exit with code 2. Operations that fail, such as creating an app that already exists, exit with code 1.
+- Tests run the commands against a temporary `PAAS_HOME`.
+
+### Non-goals
+
+- Deploying, stopping, or anything that touches containers.
+- Reading environment variables from files.
+
+### Notes for planning
+
+- Each subcommand lives in its own file. One task owns the file that registers commands, so later tasks don't all edit it. If tasks must share it anyway, say so in the proposal.
+
+## [deployment-engine] Deployment engine
+
+Depends on: runtime-interface, app-state
+
+Creates capability: `deployments`. Reads: `container-runtime`, `app-state`.
+
+### Goal
+
+One function takes an app from its stored spec to a running container through the runtime interface, records every status change, and never takes down an app's working container when a new deployment fails. All of it is proven against the fake runtime.
+
+### Requirements
+
+- A deployment moves through pending, pulling, starting and running, and the store records each step.
+- The new container is named after the app plus a short deployment id, carries the labels `paas.managed`, `paas.app` and `paas.deployment`, joins the network `paas-net`, and uses the restart policy unless-stopped.
+- Health means the container stays running for a configurable window, three seconds by default, measured on the injected clock. If it exits inside the window, the deployment fails with the exit code and the last 20 log lines.
+- Once the new container is healthy, the deployment is marked running. Only then does the engine stop and remove the previous deployment's container and mark that deployment replaced.
+- If the pull fails, the deployment fails and no container is created.
+- If the new container fails its health window, the engine removes it and the previous deployment stays running.
+- A runtime error at any step fails the deployment with the runtime's message, and nothing that was running before stops.
+- A second deploy of an app while one is in progress is refused.
+- Stopping an app stops and removes its running container and marks the deployment stopped.
+- The engine reports progress through a callback, so the CLI can print it.
+- Tests use the fake runtime and the injected clock. No test sleeps for real.
+
+### Non-goals
+
+- TCP or HTTP health checks.
+- Several replicas per app.
+- A rollback command.
+- Updating ingress. The `ingress-caddy` item hooks into this flow.
+
+### Notes for planning
+
+- Write the deployment flow as scenarios in the `deployments` delta. They are the most useful part of this change to review.
+- One module owns the flow. Pass the callback and the clock in as parameters, never as globals.
+
+## [deploy-cli] Deploy, status, logs and stop from the CLI
+
+Depends on: app-management-cli, deployment-engine
+
+Modifies capability: `cli`. Reads: `deployments`.
+
+### Goal
+
+Users drive deployments from the CLI with live progress, and can inspect status and logs.
+
+### Requirements
+
+- `paas deploy <app>` runs the engine, prints each progress step, and exits 0 when the deployment is running, or 1 with the error when it fails. `-image <ref>` updates the app's image first.
+- `paas status` shows each app's latest deployment status, short container id, image and uptime. `paas status <app>` shows one app and its last five deployments. Both accept `-json`.
+- `paas logs <app>` prints the running container's logs, with `-tail <n>` and `-since <duration>`.
+- `paas stop <app>` stops the app.
+- The CLI gets its runtime from one factory. Tests get the fake from it. Until the `docker-podman-adapter` item adds the real adapter, commands that need a runtime fail outside tests with a message that no container runtime is configured yet.
+- Tests run the commands in-process against one fake runtime and a temporary `PAAS_HOME`.
+
+### Non-goals
+
+- A real runtime.
+- Following logs as they are written.
+
+### Notes for planning
+
+- Reuse the command registration pattern from the `app-management-cli` item.
+
+## [docker-podman-adapter] Docker and Podman adapter
+
+Depends on: runtime-interface
+
+Modifies capabilities: `container-runtime`, `cli`.
+
+### Goal
+
+A dockerode-based runtime passes the same contract suite as the fake, against Docker Engine and against rootless Podman, and `paas doctor` tells the user which engine paas will talk to.
+
+### Context
+
+- Podman serves a Docker-compatible API on its socket once `podman.socket` is enabled, so one dockerode client can target both. Some behavior differs, especially networking.
+- The contract suite from the `runtime-interface` item takes a runtime factory.
+
+### Requirements
+
+- The socket is resolved in this order, and the first that exists wins: `PAAS_SOCKET`, a `unix://` value in `DOCKER_HOST`, `PODMAN_SOCKET`, `/var/run/docker.sock`, Docker Desktop's `~/.docker/run/docker.sock`, then the rootless Podman socket under `$XDG_RUNTIME_DIR` or `/run/user/<uid>`.
+- dockerode errors map to the typed errors. A missing image becomes image not found, a 409 becomes name conflict, and a refused or missing socket becomes runtime unavailable, naming the socket path.
+- Pulling waits for the whole pull stream to finish.
+- Logs from containers without a TTY are split correctly into stdout and stderr.
+- `paas doctor` prints the socket, the engine name and version, the API version, and whether `paas-net` exists. It exits 1 when the engine is unreachable.
+- The CLI's runtime factory uses this adapter by default, and tests keep using the fake.
+- Unit tests stub the dockerode client and run offline in `pnpm verify`.
+- `pnpm test:integration` runs the contract suite against the real engine when `PAAS_INTEGRATION=1`, using a small public image. It labels everything it creates with `paas.test=true` and removes those resources afterwards, even when a test fails. Without the variable it prints that it skipped and exits 0.
+
+### Human steps
+
+- Run `PAAS_INTEGRATION=1 pnpm test:integration` against Docker.
+- On Linux, enable rootless Podman with `systemctl --user enable --now podman.socket` and run it again. Record any contract differences in the change's results.
+
+### Non-goals
+
+- Remote engines over TCP or SSH.
+- TLS to the engine.
+- The build API.
+
+### Notes for planning
+
+- This is the only module that imports dockerode. Add `dockerode` and `@types/dockerode`, and check that the types match the installed major version.
+- Where Docker and Podman differ, write it into the spec rather than special-casing it silently.
+
+## [ingress-caddy] Ingress with Caddy
+
+Depends on: deploy-cli, docker-podman-adapter
+
+Creates capability: `ingress`. Modifies: `deployments`, `app-state`.
+
+### Goal
+
+Apps with a hostname are reachable through a Caddy container that paas manages. paas configures Caddy through its admin API, so routing is a pure function of paas state.
+
+### Context
+
+- Traefik's Docker provider discovers routes by reading the container socket. That would give the proxy root-equivalent access and depend on Podman's socket compatibility. Caddy's admin API accepts an explicit JSON config instead.
+- Caddy's admin API has no authentication.
+
+### Requirements
+
+- `paas ingress up` ensures the network `paas-net` and a container named `paas-caddy` from the `caddy:2` image on that network. It publishes the HTTP and HTTPS ports, keeps Caddy's data in a named volume so certificates survive restarts, and publishes the admin API on 127.0.0.1 only. Running it twice changes nothing.
+- `paas ingress down` removes the container but keeps the volume. `paas ingress status` reports whether Caddy is running and which routes it serves.
+- A pure function turns paas state into Caddy's JSON config: one route per app that has a hostname and a running deployment, proxying to the app's container name and port over `paas-net`.
+- TLS mode is `off` by default, serving plain HTTP for local `.localhost` hostnames. In `auto` mode, Caddy obtains certificates for real domains. HTTP and HTTPS host ports default to 80 and 443.
+- `paas ingress up` accepts `-tls`, `-http-port` and `-https-port`, and stores them in a settings table added to the state database by a migration.
+- When a deployment becomes healthy, paas pushes the new config before the engine removes the previous container, so traffic never points at a removed container. Stopping an app also pushes the config. If a push fails, the deployment stays as it is and the command reports the ingress error.
+- Offline tests cover config generation and use a fake admin client. `ingress up` is tested against the fake runtime.
+- The integration tier gains a test that routes a hostname to a small HTTP container and fetches it through Caddy.
+
+### Human steps
+
+- Rootless Podman cannot bind ports below 1024 by default. Either allow it with `sysctl net.ipv4.ip_unprivileged_port_start=80`, or bring ingress up with other host ports.
+
+### Non-goals
+
+- Traefik.
+- Path-based routing, per-app TLS settings, or load balancing across replicas.
+
+### Notes for planning
+
+- Binding the admin API only to 127.0.0.1 is a requirement in the spec, not an implementation detail.
+- The hook into the deployment flow is the only edit to the `deployment-engine` module. Keep it small and name it in the proposal.
+
+## [reconcile] Reconcile
+
+Depends on: ingress-caddy
+
+Modifies capability: `deployments`.
+
+### Goal
+
+`paas reconcile` brings stored state and the running engine back into agreement after a crash, a host reboot or manual `docker` commands, and reports every change it made.
+
+### Requirements
+
+- A deployment recorded as running whose container is missing is marked failed with "container disappeared".
+- A deployment recorded as running whose container has exited is marked failed with its exit code.
+- With `-redeploy`, apps whose running deployment failed in either way are deployed again.
+- A container labelled `paas.managed` with no matching running deployment is reported as an orphan. `-prune` removes orphans. The `paas-caddy` container is never an orphan.
+- A deployment stuck in pending, pulling or starting for longer than a threshold, ten minutes by default, is marked failed.
+- After any change, reconcile pushes the ingress config.
+- `-dry-run` prints the actions without taking them. `-json` prints the actions as data.
+- `paas status` runs a cheap drift check and prints one warning line when reconcile would change something.
+- Offline tests cover each case with the fake runtime and the injected clock.
+
+### Non-goals
+
+- A background loop or daemon.
+- Scheduling, or restarts beyond the engine's restart policy.
+
+### Notes for planning
+
+- Write each case as a scenario. They double as the documentation for what reconcile does.
+
+## [first-real-deploy] First real deploy
+
+Depends on: reconcile
+
+Modifies capabilities: `cli`, `deployments`.
+
+### Goal
+
+On a fresh machine with Docker or rootless Podman, a user runs `paas up`, creates an app from a public image, deploys it, opens it at its hostname, redeploys with no downtime, reads its logs and stops it. This is the first useful version.
+
+### Requirements
+
+- `paas up` runs the doctor checks, ensures `paas-net`, brings ingress up, and prints the next command to run.
+- A test with the fake runtime and fake admin client asserts that across a redeploy, no pushed config ever points at a removed container.
+- `pnpm test:e2e` runs the full flow when `PAAS_E2E=1`:
+  - bring paas up
+  - create an app with host `whoami.localhost` from the `traefik/whoami` image and deploy it
+  - fetch it through Caddy by sending the Host header to the local HTTP port, so the test doesn't depend on name resolution
+  - redeploy with a changed environment variable, fetch again and see the change
+  - read the logs, stop the app and bring paas down
+- The end-to-end test removes every paas-labelled resource it created, even on failure. Without the variable it skips and exits 0.
+- The README gets a quickstart for Docker Desktop and for rootless Podman on Linux, including the low-port caveat and how `.localhost` hostnames resolve.
+- `paas --version` reports 0.1.0.
+
+### Human steps
+
+- Run `PAAS_E2E=1 pnpm test:e2e` against Docker.
+- Run it on a Linux host with rootless Podman.
+- Optionally point a wildcard DNS record at a server, bring ingress up with `-tls auto`, and deploy with a real hostname.
+
+### Non-goals
+
+- Builds from git, a registry, an HTTP API, the dashboard, authentication, or several hosts.
+
+### Notes for planning
+
+- Most of this change is wiring and verification. If the code grows beyond two small tasks, something earlier was missing. Say so in the proposal.

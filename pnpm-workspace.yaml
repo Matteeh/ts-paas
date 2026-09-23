@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - '@matteeh/osq@0.2.0'
