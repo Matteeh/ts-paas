@@ -1,0 +1,8 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:0e24732fcb82dd42a80224c5af4cf48680050a4cd6e97699aa414933252f068c"
+build_stamp: "f82cd94"
+exit_code: 0
+scope_files: {"package.json":"sha256:d697c44f3194b0f29e8761793ad6b296fa1b2ac1b8cbfb4a33ea17b6bc7b4dc5","src/version.ts":"sha256:8550362d33582c6d84117e91bdf685012378b96e34ca38a1a424d8cef05e16a6","tests/version.test.ts":"sha256:cd160f62d02086f1ea43a1fcda8000c7ef0f8446e4e2ba719daf1dfada1c16f5","tsconfig.build.json":"sha256:563beb8975bba0464056eda8122977378769230982b0dd66f6a624ac72bb7b83","tsconfig.json":"sha256:bdae65f5de96709ed3bbdf311bc7dd872735403efa7a577f14c88df21a74c25f"}
+---
+2026-09-23T21:55:18.604Z

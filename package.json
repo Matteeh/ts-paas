@@ -1,11 +1,18 @@
 {
   "name": "ts-paas",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "paas": "dist/cli.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "verify": "node -e \"console.error('no checks yet'); process.exit(1)\""
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "verify": "tsc -p tsconfig.json && pnpm test",
+    "build": "tsc -p tsconfig.build.json"
   },
   "keywords": [],
   "author": "",
@@ -18,7 +25,6 @@
     }
   },
   "packageManager": "pnpm@12.6.0",
-  "type": "module",
   "devDependencies": {
     "@fission-ai/openspec": "1.13.1",
     "@matteeh/osq": "0.2.0",
