@@ -1,7 +1,7 @@
 {
   "name": "ts-paas",
   "version": "0.0.0",
-  "description": "",
+  "description": "A small self-hosted PaaS: deploy container images as apps on Docker or rootless Podman, with Caddy ingress, from one CLI.",
   "type": "module",
   "engines": {
     "node": ">=24"
@@ -17,6 +17,10 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Matteeh/ts-paas.git"
+  },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
