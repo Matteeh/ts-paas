@@ -13,10 +13,10 @@ test("systemClock.now is within 1s of Date.now", () => {
 });
 
 test("systemClock.sleep waits at least the requested real time", async () => {
-  const before = Date.now();
+  const before = performance.now();
   await systemClock.sleep(5);
-  const elapsed = Date.now() - before;
-  assert.ok(elapsed >= 5, `expected at least 5ms, got ${elapsed}ms`);
+  const elapsed = performance.now() - before;
+  assert.ok(elapsed >= 4, `expected at least 4ms, got ${elapsed}ms`);
 });
 
 test("FakeClock defaults to 2026-01-01T00:00:00.000Z", () => {

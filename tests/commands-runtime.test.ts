@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
@@ -10,7 +10,6 @@ import type { Command } from "commander";
 import {
   contextClock,
   defaultRuntimeFactory,
-  NO_RUNTIME_MESSAGE,
   runAction,
   withEngine,
   withStore,
@@ -26,6 +25,8 @@ import { UsageError } from "../src/errors.js";
 import type { Io } from "../src/output.js";
 import { buildProgram, run } from "../src/program.js";
 import { FakeRuntime } from "../src/runtime/fake.js";
+import { DockerRuntime } from "../src/runtime/docker.js";
+import { RuntimeUnavailableError } from "../src/runtime/errors.js";
 import { createApp, getApp } from "../src/state/apps.js";
 import type { Store } from "../src/state/db.js";
 
@@ -77,11 +78,27 @@ test("a CommandContext of just io and env is accepted", () => {
   assert.equal(minimalContext.clock, undefined);
 });
 
-test("defaultRuntimeFactory throws the no-runtime error", () => {
+test("defaultRuntimeFactory returns the Docker adapter on an existing socket", () => {
+  const dir = tempDir();
+  const socket = join(dir, "docker.sock");
+  writeFileSync(socket, "");
+
+  const runtime = defaultRuntimeFactory({ PAAS_SOCKET: socket });
+
+  assert.ok(runtime instanceof DockerRuntime);
+  assert.equal(runtime.socketPath, socket);
+});
+
+test("defaultRuntimeFactory throws the adapter's message for a missing socket", () => {
+  const dir = tempDir();
+  const socket = join(dir, "missing.sock");
+
   assert.throws(
-    () => defaultRuntimeFactory(),
+    () => defaultRuntimeFactory({ PAAS_SOCKET: socket }),
     (error: unknown) =>
-      error instanceof Error && error.message === NO_RUNTIME_MESSAGE,
+      error instanceof RuntimeUnavailableError &&
+      error.message ===
+        `cannot reach container engine at ${socket}: socket not found`,
   );
 });
 
@@ -163,7 +180,8 @@ test("withEngine closes the store when fn throws and propagates the error", asyn
 
 test("withEngine without a runtime rejects before opening the store", async () => {
   const dir = tempDir();
-  const env = { PAAS_HOME: dir };
+  const socket = join(dir, "missing.sock");
+  const env = { PAAS_HOME: dir, PAAS_SOCKET: socket };
   let called = false;
 
   await assert.rejects(
@@ -171,21 +189,47 @@ test("withEngine without a runtime rejects before opening the store", async () =
       called = true;
     }),
     (error: unknown) =>
-      error instanceof Error && error.message === NO_RUNTIME_MESSAGE,
+      error instanceof RuntimeUnavailableError &&
+      error.message ===
+        `cannot reach container engine at ${socket}: socket not found`,
   );
 
   assert.equal(called, false, "expected fn not to be called");
   assert.equal(existsSync(join(dir, "state.db")), false);
 });
 
-test("the no-runtime error through run and runAction is a plain operation failure", async () => {
+test("withEngine pings an injected runtime before opening the store", async () => {
+  const dir = tempDir();
+  const fake = new FakeRuntime();
+  fake.unavailable = true;
+  let called = false;
+
+  await assert.rejects(
+    withEngine(
+      { io: capture().io, env: { PAAS_HOME: dir }, runtime: () => fake },
+      () => {
+        called = true;
+      },
+    ),
+    (error: unknown) => error instanceof RuntimeUnavailableError,
+  );
+
+  assert.equal(called, false, "expected fn not to be called");
+  assert.equal(existsSync(join(dir, "state.db")), false);
+});
+
+test("an unreachable engine through run and runAction is a plain operation failure", async () => {
   const captureState = capture();
   const program = buildProgram(captureState.io);
   const probe: Command = program.command("probe").description("probe the runtime");
   const dir = tempDir();
+  const socket = join(dir, "missing.sock");
   probe.action(() =>
     runAction(probe, () =>
-      withEngine({ io: captureState.io, env: { PAAS_HOME: dir } }, () => {}),
+      withEngine(
+        { io: captureState.io, env: { PAAS_HOME: dir, PAAS_SOCKET: socket } },
+        () => {},
+      ),
     ),
   );
 
@@ -193,7 +237,10 @@ test("the no-runtime error through run and runAction is a plain operation failur
 
   assert.equal(code, 1);
   assert.equal(captureState.out, "");
-  assert.equal(captureState.err, `paas: ${NO_RUNTIME_MESSAGE}\n`);
+  assert.equal(
+    captureState.err,
+    `paas: cannot reach container engine at ${socket}: socket not found\n`,
+  );
 });
 
 test("parseDuration converts each unit to milliseconds", () => {

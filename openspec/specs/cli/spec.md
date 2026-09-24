@@ -165,14 +165,6 @@ An app SHALL print as lines of a label padded to 9 characters followed by the va
 - **WHEN** app `web` has a running deployment and a user runs `paas apps delete web`
 - **THEN** stderr is `paas: app "web" has a running deployment; stop the app first` and a newline, the exit code is 1, and `web` still exists
 
-### Requirement: Runtime factory
-
-Commands that need a container runtime SHALL get it from the one runtime factory the program is built with, before they open the state database. The default factory SHALL fail with `no container runtime is configured yet` as an operation failure. Tests SHALL inject a factory that returns one shared fake runtime, and a clock that the store, the runtime and the engine share.
-
-#### Scenario: No runtime yet
-- **WHEN** app `web` exists and a user runs `paas deploy web` with the default factory
-- **THEN** stderr is exactly `paas: no container runtime is configured yet` and a newline, the exit code is 1, and no deployment is created
-
 ### Requirement: Deploy command
 
 `paas deploy <app>` SHALL run the deployment engine and print one line `<status>: <message>` per progress event as it happens, then `<app> is running (deployment <id>)`, and exit 0 when the deployment is running. `--image <ref>` SHALL update the app's image first; the update stays even if the deploy then fails or is refused.
@@ -248,3 +240,23 @@ When the deployment fails, `paas deploy` SHALL print each further line of the de
 #### Scenario: Stop twice
 - **WHEN** `web` is stopped and then stopped again
 - **THEN** the first exits 0 and the second exits 1 with stderr `paas: app "web" has no running deployment` and a newline
+
+### Requirement: Default container runtime
+
+Commands that need a container runtime SHALL get it from the one runtime factory the program is built with, and SHALL ping it before they open the state database. The default factory SHALL be the Docker adapter on the resolved socket. An unresolvable or unreachable engine SHALL be an operation failure with the adapter's message, leaving state untouched. Tests SHALL inject a fake runtime and a shared clock.
+
+#### Scenario: Unreachable engine
+- **WHEN** app `web` exists, `PAAS_SOCKET` names a missing path, and a user runs `paas deploy web`
+- **THEN** stderr is exactly `paas: cannot reach container engine at <path>: socket not found` and a newline, the exit code is 1, and no deployment is created
+
+### Requirement: Doctor command
+
+`paas doctor` SHALL print lines `socket:`, `engine:` (name and version), `api:`, and `paas-net:` (`present` or `missing`), each label padded to 10 characters, with `-` for an unknown value. It SHALL not create the network or open the state database. `--json` SHALL print `{socket, engine, version, apiVersion, paasNet}`. An unresolvable or unreachable engine SHALL exit 1 with the adapter's message.
+
+#### Scenario: Doctor on the fake
+- **WHEN** `paas doctor` runs on the fake runtime without `paas-net`
+- **THEN** stdout is `socket:   -`, `engine:   fake 0.0.0`, `api:      -`, `paas-net: missing`, and the exit code is 0
+
+#### Scenario: Engine unreachable
+- **WHEN** `PAAS_SOCKET` names a missing path and a user runs `paas doctor`
+- **THEN** stderr is `paas: cannot reach container engine at <path>: socket not found` and a newline, and the exit code is 1

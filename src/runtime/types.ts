@@ -47,6 +47,8 @@ export interface ContainerInfo extends ContainerSummary {
 export interface EngineInfo {
   name: string;
   version: string;
+  apiVersion?: string;
+  endpoint?: string;
 }
 
 export interface LogEntry {
@@ -71,5 +73,6 @@ export interface ContainerRuntime {
   listContainers(labels: Record<string, string>): Promise<ContainerSummary[]>;
   containerLogs(idOrName: string, options?: LogOptions): Promise<LogEntry[]>;
   ensureNetwork(name: string): Promise<void>;
+  networkExists(name: string): Promise<boolean>;
   ensureVolume(name: string): Promise<void>;
 }

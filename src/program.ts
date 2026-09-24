@@ -3,6 +3,7 @@ import { Command, CommanderError } from "commander";
 import { registerAppsCommand } from "./commands/apps.js";
 import type { CommandContext } from "./commands/context.js";
 import { registerDeploy } from "./commands/deploy.js";
+import { registerDoctor } from "./commands/doctor.js";
 import { registerLogs } from "./commands/logs.js";
 import { registerStatus } from "./commands/status.js";
 import { registerStop } from "./commands/stop.js";
@@ -55,6 +56,7 @@ export function buildProgram(
   registerStatus(program, context);
   registerLogs(program, context);
   registerStop(program, context);
+  registerDoctor(program, context);
 
   return program;
 }

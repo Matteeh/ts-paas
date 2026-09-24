@@ -5,6 +5,8 @@ import { systemClock } from "../clock.js";
 import type { EngineDeps } from "../deployments/types.js";
 import { UsageError } from "../errors.js";
 import type { Io } from "../output.js";
+import { DockerRuntime } from "../runtime/docker.js";
+import { resolveSocket } from "../runtime/socket.js";
 import type { ContainerRuntime } from "../runtime/types.js";
 import { openStore, type Store } from "../state/db.js";
 import { ValidationError } from "../state/errors.js";
@@ -19,12 +21,16 @@ export interface CommandContext {
   clock?: Clock;
 }
 
-/** The error of the default runtime factory until a real adapter exists. */
-export const NO_RUNTIME_MESSAGE = "no container runtime is configured yet";
+/** The default runtime factory: the Docker adapter on the resolved socket. */
+export function defaultRuntimeFactory(env: NodeJS.ProcessEnv): ContainerRuntime {
+  return new DockerRuntime({ socketPath: resolveSocket(env).path });
+}
 
-/** The program's runtime factory until `docker-podman-adapter` replaces it. */
-export function defaultRuntimeFactory(): ContainerRuntime {
-  throw new Error(NO_RUNTIME_MESSAGE);
+/** The context's runtime, or {@link defaultRuntimeFactory} when none was injected. */
+export function getRuntime(context: CommandContext): ContainerRuntime {
+  return context.runtime
+    ? context.runtime()
+    : defaultRuntimeFactory(context.env);
 }
 
 /** The context's clock, or the system clock when none was injected. */
@@ -51,14 +57,16 @@ export async function withStore<T>(
 }
 
 /**
- * Resolve the runtime factory before opening the store, then run `fn` with
- * the store, the runtime and the context clock as engine dependencies.
+ * Resolve and ping the runtime before opening the store, then run `fn` with
+ * the store, the runtime and the context clock as engine dependencies. An
+ * unreachable engine fails before the store is opened, leaving state alone.
  */
 export async function withEngine<T>(
   context: CommandContext,
   fn: (deps: EngineDeps) => T | Promise<T>,
 ): Promise<T> {
-  const runtime = (context.runtime ?? defaultRuntimeFactory)();
+  const runtime = getRuntime(context);
+  await runtime.ping();
   return withStore(context, (store) => {
     const deps: EngineDeps = {
       store,

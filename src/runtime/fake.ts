@@ -262,6 +262,11 @@ export class FakeRuntime implements ContainerRuntime {
     this.networks.add(name);
   }
 
+  async networkExists(name: string): Promise<boolean> {
+    this.check();
+    return this.networks.has(name);
+  }
+
   async ensureVolume(name: string): Promise<void> {
     this.check();
     this.volumes.add(name);

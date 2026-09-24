@@ -147,10 +147,11 @@ test("help lists deploy, status, logs and stop with their descriptions", () => {
   }
 });
 
-test("child process: deploy without a runtime fails, status still exits 0", () => {
+test("child process: deploy with an unreachable engine fails, status still exits 0", () => {
   const dir = tempDir();
+  const socket = join(dir, "missing.sock");
   const cli = fileURLToPath(new URL("../src/cli.ts", import.meta.url));
-  const env = { ...process.env, PAAS_HOME: dir };
+  const env = { ...process.env, PAAS_HOME: dir, PAAS_SOCKET: socket };
   const runCli = (args: string[]) =>
     spawnSync(process.execPath, ["--import", "tsx", cli, ...args], {
       encoding: "utf8",
@@ -171,7 +172,10 @@ test("child process: deploy without a runtime fails, status still exits 0", () =
   const deploy = runCli(["deploy", "web"]);
   assert.equal(deploy.status, 1);
   assert.equal(deploy.stdout, "");
-  assert.equal(deploy.stderr, "paas: no container runtime is configured yet\n");
+  assert.equal(
+    deploy.stderr,
+    `paas: cannot reach container engine at ${socket}: socket not found\n`,
+  );
 
   const status = runCli(["status"]);
   assert.equal(status.status, 0, status.stderr);

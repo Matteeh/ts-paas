@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:c331838c4533da6ece0708dbf3512f1c9d18327b40788a032c52c5a88ecd1416"
+build_stamp: "e04af71"
+project_commit: "02bed99"
+exit_code: 0
+scope_files: {"src/commands/context.ts":"sha256:ed16d9a0bec52b8c6ee8519fa5f63dae91f831b2ef5316813fd69693b3e77a94","src/commands/doctor.ts":"sha256:53bdcb88f57a41f22894eb64c6e112d0e70dc1a3099f048ccb6da665c5e91bf4","src/program.ts":"sha256:086823958d14f5659fa2660159a99b1c80ddc15f19465d9705cc49beaa167135","tests/commands-runtime.test.ts":"sha256:d463fc43500bdf4491d2c8fe494945109f99e2fdf135ea1d7d67a8a9bf20f83f","tests/deploy-cli.test.ts":"sha256:d8ec5fe3ee6cbd7744bad0842383f8bff0724561fdd8c4e5cc8fd638bd28a4ab","tests/doctor-cli.test.ts":"sha256:9c00317a79925113fa64e12f413ff1cf1e0f60c13caee0ef4d3511953f8816b3"}
+---
+2026-09-24T14:50:48.299Z

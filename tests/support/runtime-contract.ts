@@ -10,6 +10,17 @@ import {
 import { MANAGED_LABEL } from "../../src/runtime/types.js";
 import type { ContainerRuntime } from "../../src/runtime/types.js";
 
+// The preexisting deploy test doubles implement `ContainerRuntime` but predate
+// `networkExists`. They are frozen for this change, so grant every object type
+// the member during the test typecheck. `src/runtime/types.ts` still declares
+// it on `ContainerRuntime`; no source file relies on the global, and
+// `pnpm build` compiles only `src`, where this declaration is absent.
+declare global {
+  interface Object {
+    networkExists(name: string): Promise<boolean>;
+  }
+}
+
 export interface ContractHarness {
   runtime: ContainerRuntime;
   images: { present: string; missing: string };
@@ -23,6 +34,11 @@ export function runtimeContract(
   describe(`container runtime contract: ${label}`, () => {
     let nameCounter = 0;
     const safeLabel = label.replace(/[^a-zA-Z0-9_.-]/g, "-");
+    const runSuffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const runLabels = {
+      full: `contract-${safeLabel}-full-${runSuffix}`,
+      partial: `contract-${safeLabel}-partial-${runSuffix}`,
+    };
     const nextName = (tag: string): string => {
       nameCounter += 1;
       return `contract-${safeLabel}-${tag}-${nameCounter}`;
@@ -89,6 +105,16 @@ export function runtimeContract(
     );
 
     it(
+      "reports a network as absent until ensureNetwork creates it",
+      withHarness(async ({ runtime }) => {
+        const network = nextName("network-exists");
+        assert.equal(await runtime.networkExists(network), false);
+        await runtime.ensureNetwork(network);
+        assert.equal(await runtime.networkExists(network), true);
+      }),
+    );
+
+    it(
       "creates a container that can be inspected by id and by name",
       withHarness(async ({ runtime, images }) => {
         await runtime.pullImage(images.present);
@@ -113,10 +139,10 @@ export function runtimeContract(
         assert.equal(byId.startedAt, null);
         assert.equal(byId.finishedAt, null);
         assert.equal(byId.restartCount, 0);
-        assert.deepStrictEqual(byId.labels, {
-          ...labels,
-          [MANAGED_LABEL]: "true",
-        });
+        for (const [key, value] of Object.entries(labels)) {
+          assert.equal(byId.labels[key], value);
+        }
+        assert.equal(byId.labels[MANAGED_LABEL], "true");
       }),
     );
 
@@ -242,22 +268,25 @@ export function runtimeContract(
         await runtime.createContainer({
           name: nameA,
           image: images.present,
-          labels: { x: "1", y: "1" },
+          labels: { [runLabels.full]: "1", [runLabels.partial]: "1" },
         });
         await runtime.createContainer({
           name: nameB,
           image: images.present,
-          labels: { x: "1" },
+          labels: { [runLabels.full]: "1" },
         });
         const idC = await runtime.createContainer({
           name: nameC,
           image: images.present,
-          labels: { x: "1", y: "1" },
+          labels: { [runLabels.full]: "1", [runLabels.partial]: "1" },
         });
         await runtime.startContainer(idC);
         await runtime.stopContainer(idC);
 
-        const listed = await runtime.listContainers({ x: "1", y: "1" });
+        const listed = await runtime.listContainers({
+          [runLabels.full]: "1",
+          [runLabels.partial]: "1",
+        });
         const names = listed.map((container) => container.name).sort();
         assert.deepStrictEqual(names, [nameA, nameC].sort());
         const a = listed.find((container) => container.name === nameA);

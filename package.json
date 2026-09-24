@@ -11,6 +11,7 @@
   },
   "scripts": {
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test:integration": "node --import tsx --test \"tests/integration/**/*.itest.ts\"",
     "verify": "tsc -p tsconfig.json && pnpm test",
     "build": "tsc -p tsconfig.build.json"
   },

@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:c4190c37bd1528157e69b8745ec0e79c0b4e67aa0c228155ef00dd0eb63dfcb5"
+build_stamp: "e04af71"
+project_commit: "02bed99"
+exit_code: 0
+scope_files: {"package.json":"sha256:37c94d06184d771cd3838255850fee085319b505a70909f942bb0c86860c3850","src/runtime/docker.ts":"sha256:5841a3bd5cb1dfc8d3bbb43634a9a668764469ef9db4852ce11f3ebbfd7f719d","tests/docker-runtime.test.ts":"sha256:ace86496d605eee2d4a928b9210c97bf796dcb68b8b8cc09c2fcea8475c56227","tests/integration/docker.itest.ts":"sha256:da72309cc72763f473ba63ffbad32cdfabf4764d5d754a314843a17d9d7c4e38"}
+---
+2026-09-24T14:49:04.562Z
