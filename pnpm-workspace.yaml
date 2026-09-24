@@ -1,4 +1,4 @@
 allowBuilds:
   esbuild: false
 minimumReleaseAgeExclude:
-  - '@matteeh/osq@0.2.0'
+  - '@matteeh/osq@0.2.0 || 0.2.1'

@@ -174,8 +174,8 @@ importers:
         specifier: 1.13.1
         version: 1.13.1(@types/node@26.6.2)
       '@matteeh/osq':
-        specifier: 0.2.0
-        version: 0.2.0(@fission-ai/openspec@1.13.1(@types/node@26.6.2))
+        specifier: 0.2.1
+        version: 0.2.1(@fission-ai/openspec@1.13.1(@types/node@26.6.2))
       '@types/node':
         specifier: 26.6.2
         version: 26.6.2
@@ -492,8 +492,8 @@ packages:
       '@types/node':
         optional: true
 
-  '@matteeh/osq@0.2.0':
-    resolution: {integrity: sha512-G5u+/TZmT+8mx/AG3Xg9h+UAqcakAZ1EnA8BIZY/wPcGKTye9jByW0slqYYBk/IKSrbTs03qxsZZfhTyKOin6A==}
+  '@matteeh/osq@0.2.1':
+    resolution: {integrity: sha512-+fS66yCNngtdFv+SiHvhAcDdBtfRyCThv4p6yzT1x0CzeZViztygy9GrARrj6yJTPt1Nd39xREZKOZAc7zTj+Q==}
     engines: {node: '>=24.0.0'}
     hasBin: true
     peerDependencies:
@@ -1095,7 +1095,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 26.6.2
 
-  '@matteeh/osq@0.2.0(@fission-ai/openspec@1.13.1(@types/node@26.6.2))':
+  '@matteeh/osq@0.2.1(@fission-ai/openspec@1.13.1(@types/node@26.6.2))':
     dependencies:
       '@fission-ai/openspec': 1.13.1(@types/node@26.6.2)
       chokidar: 4.0.3
