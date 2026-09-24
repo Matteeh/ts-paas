@@ -6,7 +6,7 @@ The project also tests a spec-driven workflow built on [osq](https://www.npmjs.c
 
 ## Status
 
-This is an early skeleton. The `paas` CLI only prints its version and help. It can't manage apps or containers yet. See the [roadmap](#roadmap).
+Work in progress. `paas` can manage apps (`paas apps`), deploy them with health checks and zero-downtime replacement (`paas deploy`, `status`, `logs`, `stop`), and report the engine it talks to (`paas doctor`), on Docker or Podman through the Docker-compatible socket. Ingress, reconcile and `paas up` are still to come. See the [roadmap](#roadmap).
 
 ## Requirements
 
@@ -23,6 +23,8 @@ node dist/cli.js --help
 ```
 
 Tests use `node:test` through `tsx` and run the CLI from source. No test depends on `dist/`.
+
+`pnpm test:integration` runs the runtime contract suite against a real Docker or Podman engine when `PAAS_INTEGRATION=1` is set; without it, it skips. See [docs/integration-testing.md](docs/integration-testing.md) for setup (including WSL), engine selection, cleanup, and known engine differences.
 
 ### CLI conventions
 
@@ -50,12 +52,12 @@ Work arrives as a queue of briefs in [openspec/queue.md](openspec/queue.md). For
 The queued changes, in dependency order:
 
 1. **Scaffold and CLI skeleton** (done): TypeScript toolchain, `pnpm verify`, and the `paas` entry point.
-2. **Container runtime interface**: one `ContainerRuntime` interface, an in-memory fake, and a contract test suite.
-3. **App state store**: apps and deployments in local SQLite, with migrations.
-4. **App management CLI**: create, list, inspect, update, and delete apps.
-5. **Deployment engine**: deploy from the stored spec, and never take down a working container when a new deployment fails.
-6. **Deploy CLI**: deploy, status, logs, and stop, with live progress.
-7. **Docker and Podman adapter**: a real runtime that passes the same contract suite, plus `paas doctor`.
+2. **Container runtime interface** (done): one `ContainerRuntime` interface, an in-memory fake, and a contract test suite.
+3. **App state store** (done): apps and deployments in local SQLite, with migrations.
+4. **App management CLI** (done): create, list, inspect, update, and delete apps.
+5. **Deployment engine** (done): deploy from the stored spec, and never take down a working container when a new deployment fails.
+6. **Deploy CLI** (done): deploy, status, logs, and stop, with live progress.
+7. **Docker and Podman adapter** (done): a real runtime that passes the same contract suite, plus `paas doctor`. Integration results so far are in [docs/integration-testing.md](docs/integration-testing.md#known-results).
 8. **Ingress with Caddy**: hostname routing through a Caddy container that paas configures.
 9. **Reconcile**: `paas reconcile` makes stored state and the engine agree again after a crash, a reboot, or manual changes.
 10. **First real deploy**: `paas up` and an end-to-end flow on Docker and rootless Podman.
