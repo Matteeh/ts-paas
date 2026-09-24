@@ -1,6 +1,6 @@
 {
   "name": "ts-paas",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A small self-hosted PaaS: deploy container images as apps on Docker or rootless Podman, with Caddy ingress, from one CLI.",
   "type": "module",
   "engines": {
@@ -12,6 +12,7 @@
   "scripts": {
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "test:integration": "node --import tsx --test \"tests/integration/**/*.itest.ts\"",
+    "test:e2e": "node --import tsx --test \"tests/e2e/**/*.e2e.ts\"",
     "verify": "tsc -p tsconfig.json && pnpm test",
     "build": "tsc -p tsconfig.build.json"
   },

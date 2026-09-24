@@ -11,7 +11,11 @@ import type { IngressDeps } from "../ingress/caddy.js";
 import { DEFAULT_TARGET, ingressStatus, syncIngress } from "../ingress/caddy.js";
 import { desiredRoutes, type IngressRoute } from "../ingress/config.js";
 import { writeOutput } from "../output.js";
-import { deploymentHistory } from "../state/deployments.js";
+import { listApps } from "../state/apps.js";
+import {
+  deploymentHistory,
+  deploymentStatusChanges,
+} from "../state/deployments.js";
 import {
   getAdmin,
   runAction,
@@ -19,12 +23,13 @@ import {
   type CommandContext,
 } from "./context.js";
 
-/** One reported reconcile item, in the shape the JSON mode prints. */
+/** One reported reconcile item. `name` is human-only and never serialized. */
 export interface ReportItem {
   kind: "fail" | "orphan" | "prune" | "redeploy" | "push-ingress";
   app: string | null;
   deploymentId: string | null;
   containerId: string | null;
+  name: string | null;
   detail: string;
   ok: boolean | null;
 }
@@ -41,20 +46,6 @@ interface ReconcileCliOptions {
   json?: boolean;
 }
 
-/**
- * Where the container name of an orphan/prune item lives. Kept out of the
- * item itself so the JSON output stays exactly the documented shape.
- */
-const itemNames = new WeakMap<ReportItem, string>();
-
-function rememberName(item: ReportItem, name: string): void {
-  itemNames.set(item, name);
-}
-
-function itemName(item: ReportItem): string {
-  return itemNames.get(item) ?? item.containerId ?? "-";
-}
-
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -68,18 +59,6 @@ function firstLine(message: string): string {
 /** True when a planned failure is about a container, not a stuck deployment. */
 function isContainerFailure(error: string): boolean {
   return !error.startsWith("stuck in ");
-}
-
-/** True when the app still has a running deployment the plan does not fail. */
-function hasRunningDeploymentLeft(
-  deps: IngressDeps,
-  app: string,
-  failed: ReadonlySet<string>,
-): boolean {
-  return deploymentHistory(deps.store, app).some(
-    (deployment) =>
-      deployment.status === "running" && !failed.has(deployment.id),
-  );
 }
 
 function sameRoutes(
@@ -127,6 +106,7 @@ function failItem(
     app: entry.app,
     deploymentId: entry.deploymentId,
     containerId: entry.containerId,
+    name: null,
   };
   if (options.dryRun) {
     return { ...base, detail: entry.error, ok: null };
@@ -150,6 +130,7 @@ function orphanItem(
     app: entry.app,
     deploymentId: null,
     containerId: entry.containerId,
+    name: entry.name,
   };
   let item: ReportItem;
   if (!options.prune) {
@@ -171,7 +152,6 @@ function orphanItem(
   } else {
     item = { kind: "prune", ...base, detail: "removed", ok: true };
   }
-  rememberName(item, entry.name);
   return item;
 }
 
@@ -184,35 +164,51 @@ async function redeployItems(
     return [];
   }
 
-  const failed = new Set(
-    plan
-      .filter((entry): entry is Extract<ReconcileItem, { kind: "fail" }> =>
-        entry.kind === "fail",
-      )
-      .map((entry) => entry.deploymentId),
-  );
+  const plannedContainerFailures = new Set<string>();
+  const failedByPlan = new Set<string>();
+  for (const entry of plan) {
+    if (entry.kind !== "fail") {
+      continue;
+    }
+    failedByPlan.add(entry.deploymentId);
+    if (isContainerFailure(entry.error)) {
+      plannedContainerFailures.add(entry.deploymentId);
+    }
+  }
 
   const items: ReportItem[] = [];
-  const redeployed = new Set<string>();
 
-  for (const entry of plan) {
-    if (entry.kind !== "fail" || !isContainerFailure(entry.error)) {
+  for (const app of listApps(deps.store)) {
+    const history = deploymentHistory(deps.store, app.name);
+    const latest = history[0];
+    if (latest === undefined) {
       continue;
     }
-    if (redeployed.has(entry.app)) {
+
+    const runningLeft = history.some(
+      (deployment) =>
+        deployment.status === "running" && !failedByPlan.has(deployment.id),
+    );
+    if (runningLeft) {
       continue;
     }
-    if (hasRunningDeploymentLeft(deps, entry.app, failed)) {
+
+    const failedThenRunning =
+      latest.status === "failed" &&
+      deploymentStatusChanges(deps.store, latest.id).some(
+        (change) => change.status === "running",
+      );
+    if (!plannedContainerFailures.has(latest.id) && !failedThenRunning) {
       continue;
     }
-    redeployed.add(entry.app);
 
     if (options.dryRun) {
       items.push({
         kind: "redeploy",
-        app: entry.app,
+        app: app.name,
         deploymentId: null,
         containerId: null,
+        name: null,
         detail: "planned",
         ok: null,
       });
@@ -220,22 +216,24 @@ async function redeployItems(
     }
 
     try {
-      const deployment = await deploy(deps, entry.app);
+      const deployment = await deploy(deps, app.name);
       if (deployment.status === "running") {
         items.push({
           kind: "redeploy",
-          app: entry.app,
+          app: app.name,
           deploymentId: deployment.id,
           containerId: deployment.containerId,
+          name: null,
           detail: `deployment ${deployment.id} is running`,
           ok: true,
         });
       } else {
         items.push({
           kind: "redeploy",
-          app: entry.app,
+          app: app.name,
           deploymentId: deployment.id,
           containerId: deployment.containerId,
+          name: null,
           detail: `failed: ${firstLine(deployment.error ?? "deployment failed")}`,
           ok: false,
         });
@@ -243,9 +241,10 @@ async function redeployItems(
     } catch (error) {
       items.push({
         kind: "redeploy",
-        app: entry.app,
+        app: app.name,
         deploymentId: null,
         containerId: null,
+        name: null,
         detail: `failed: ${firstLine(errorMessage(error))}`,
         ok: false,
       });
@@ -308,6 +307,7 @@ export async function runReconcile(
           app: null,
           deploymentId: null,
           containerId: null,
+          name: null,
           detail: "planned",
           ok: null,
         });
@@ -319,6 +319,7 @@ export async function runReconcile(
             app: null,
             deploymentId: null,
             containerId: null,
+            name: null,
             detail: `${desired.length} routes`,
             ok: true,
           });
@@ -328,6 +329,7 @@ export async function runReconcile(
             app: null,
             deploymentId: null,
             containerId: null,
+            name: null,
             detail: `failed: ${firstLine(errorMessage(error))}`,
             ok: false,
           });
@@ -345,9 +347,9 @@ export function formatReconcileItem(item: ReportItem): string {
     case "fail":
       return `fail: ${item.app} deployment ${item.deploymentId} (${item.detail})`;
     case "orphan":
-      return `orphan: ${itemName(item)} (app ${item.app}; use --prune to remove)`;
+      return `orphan: ${item.name ?? item.containerId ?? "-"} (app ${item.app}; use --prune to remove)`;
     case "prune":
-      return `prune: ${itemName(item)} (${item.detail})`;
+      return `prune: ${item.name ?? item.containerId ?? "-"} (${item.detail})`;
     case "redeploy":
       return `redeploy: ${item.app} (${item.detail})`;
     case "push-ingress":
@@ -369,6 +371,33 @@ export function formatReconcile(report: ReconcileReport): string {
     }
   }
   return lines.join("\n");
+}
+
+interface JsonReportItem {
+  kind: ReportItem["kind"];
+  app: string | null;
+  deploymentId: string | null;
+  containerId: string | null;
+  detail: string;
+  ok: boolean | null;
+}
+
+/** The JSON shape: the documented keys, without the human-only `name`. */
+function jsonReport(report: ReconcileReport): {
+  dryRun: boolean;
+  items: JsonReportItem[];
+} {
+  return {
+    dryRun: report.dryRun,
+    items: report.items.map((item) => ({
+      kind: item.kind,
+      app: item.app,
+      deploymentId: item.deploymentId,
+      containerId: item.containerId,
+      detail: item.detail,
+      ok: item.ok,
+    })),
+  };
 }
 
 export function registerReconcile(
@@ -393,12 +422,11 @@ export function registerReconcile(
               redeploy: options.redeploy === true,
             },
           );
-          writeOutput(
-            context.io,
-            report,
-            { json: options.json === true },
-            formatReconcile,
-          );
+          if (options.json === true) {
+            writeOutput(context.io, jsonReport(report), { json: true }, () => "");
+          } else {
+            writeOutput(context.io, report, { json: false }, formatReconcile);
+          }
           const failed = report.items.filter((item) => item.ok === false);
           if (failed.length > 0) {
             throw new Error(`reconcile had ${failed.length} failed item(s)`);

@@ -9,6 +9,7 @@ import { registerLogs } from "./commands/logs.js";
 import { registerReconcile } from "./commands/reconcile.js";
 import { registerStatus } from "./commands/status.js";
 import { registerStop } from "./commands/stop.js";
+import { registerUp } from "./commands/up.js";
 import type { Clock } from "./clock.js";
 import { UsageError } from "./errors.js";
 import type { CaddyAdmin } from "./ingress/admin.js";
@@ -63,6 +64,7 @@ export function buildProgram(
   registerStop(program, context);
   registerDoctor(program, context);
   registerReconcile(program, context);
+  registerUp(program, context);
   registerIngressCommand(program, context);
 
   return program;

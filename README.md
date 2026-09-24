@@ -6,12 +6,85 @@ The project also tests a spec-driven workflow built on [osq](https://www.npmjs.c
 
 ## Status
 
-Work in progress. `paas` can manage apps (`paas apps`), deploy them with health checks and zero-downtime replacement (`paas deploy`, `status`, `logs`, `stop`), and report the engine it talks to (`paas doctor`), on Docker or Podman through the Docker-compatible socket. It routes each app's hostname through a managed Caddy (`paas ingress`) and repairs drift between its state and the engine (`paas reconcile`). `paas up` is still to come. See the [roadmap](#roadmap).
+Work in progress. `paas` can manage apps (`paas apps`), deploy them with health checks and zero-downtime replacement (`paas deploy`, `status`, `logs`, `stop`), and report the engine it talks to (`paas doctor`), on Docker or Podman through the Docker-compatible socket. It routes each app's hostname through a managed Caddy (`paas ingress`), repairs drift between its state and the engine (`paas reconcile`), and brings the whole platform up with `paas up`. The [Quickstart](#quickstart) walks through the first deploy. See the [roadmap](#roadmap).
 
 ## Requirements
 
 - Node.js 24 or later
 - pnpm 12
+
+## Quickstart
+
+Install, build, and run the CLI. The rest of this section shows it as `paas`.
+
+```sh
+pnpm install
+pnpm build
+node dist/cli.js --version   # 0.1.0
+```
+
+Bring the platform up:
+
+```sh
+paas up
+```
+
+Then create, deploy, and open the whoami app:
+
+```sh
+paas apps create whoami \
+  --image docker.io/traefik/whoami:v1.11.0 \
+  --port 80 \
+  --host whoami.localhost \
+  --env WHOAMI_NAME=blue
+paas deploy whoami
+```
+
+Open <http://whoami.localhost>, or force the host with curl:
+
+```sh
+curl -H "Host: whoami.localhost" http://127.0.0.1/
+```
+
+Browsers and most resolvers send `*.localhost` to `127.0.0.1`, so the hostname works without editing `/etc/hosts`. `curl` with a `Host` header always works, even where resolution does not.
+
+Redeploy with a changed environment variable, read the logs, and stop:
+
+```sh
+paas apps set whoami --env WHOAMI_NAME=green
+paas deploy whoami   # no downtime; requests keep returning 200
+paas logs whoami
+paas stop whoami
+paas ingress down
+```
+
+### Docker Desktop
+
+Docker Desktop publishes the default ports 80 and 443, so `paas up` works as-is. The CLI finds the socket Docker exposes at `/var/run/docker.sock` or `~/.docker/run/docker.sock` automatically.
+
+### Rootless Podman on Linux
+
+Enable the Podman API socket and point paas at it:
+
+```sh
+systemctl --user enable --now podman.socket
+export PAAS_SOCKET=$XDG_RUNTIME_DIR/podman/podman.sock
+```
+
+Rootless Podman cannot bind ports below 1024 by default. Either let unprivileged processes bind them:
+
+```sh
+sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+```
+
+or bring ingress up on high ports and add the port to URLs:
+
+```sh
+paas up --http-port 8080 --https-port 8443
+# then use http://whoami.localhost:8080
+```
+
+To break a deployment and repair it, see [docs/manual-testing.md](docs/manual-testing.md).
 
 ## Development
 
@@ -62,7 +135,7 @@ The queued changes, in dependency order:
 7. **Docker and Podman adapter** (done): a real runtime that passes the same contract suite, plus `paas doctor`. Integration results so far are in [docs/integration-testing.md](docs/integration-testing.md#known-results).
 8. **Ingress with Caddy** (done): hostname routing through a Caddy container that paas configures.
 9. **Reconcile** (done): `paas reconcile` makes stored state and the engine agree again after a crash, a reboot, or manual changes.
-10. **First real deploy**: `paas up` and an end-to-end flow on Docker and rootless Podman.
+10. **First real deploy** (done): `paas up` and an end-to-end flow on Docker and rootless Podman.
 
 ## License
 

@@ -5,6 +5,7 @@ import {
   ingressStatus,
   ingressUp,
   type IngressStatus,
+  type UpResult,
 } from "../ingress/caddy.js";
 import { writeOutput } from "../output.js";
 import type { IngressSettings } from "../state/settings.js";
@@ -45,6 +46,15 @@ export function toStatusView(status: IngressStatus): IngressStatusView {
     httpsPort: status.settings.httpsPort,
     routes: status.routes,
   };
+}
+
+/** The one human-readable line `ingress up` prints. */
+export function formatIngressUp(result: UpResult): string {
+  return (
+    `ingress is up (${result.action}): http ${result.settings.httpPort}, ` +
+    `https ${result.settings.httpsPort}, tls ${result.settings.tls}, ` +
+    `routes ${result.routes.length}`
+  );
 }
 
 /** The five status lines, then one line per route. */
@@ -92,11 +102,7 @@ export function registerIngressCommand(
             { ...deps, admin: getAdmin(context) },
             changes,
           );
-          context.io.out(
-            `ingress is up (${result.action}): http ${result.settings.httpPort}, ` +
-              `https ${result.settings.httpsPort}, tls ${result.settings.tls}, ` +
-              `routes ${result.routes.length}\n`,
-          );
+          context.io.out(`${formatIngressUp(result)}\n`);
         });
       });
     });
