@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:cac7774a2f772bb51df8ae4d644ce3d561650e839fc4b1f25d7369f116513db8"
+build_stamp: "e04af71"
+project_commit: "5c0e17a"
+exit_code: 0
+scope_files: {"src/deployments/stop.ts":"sha256:5fd42d253cca79d4901a2bf786bf8bab70bc152bf8d10c3355b872356e8c0d91","tests/deploy-stop.test.ts":"sha256:501b199d62e4cfb91bc174bb620f2584da0e37905d0399676f950a736c12d0a3"}
+---
+2026-09-24T11:17:59.621Z
