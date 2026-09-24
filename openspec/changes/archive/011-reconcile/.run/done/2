@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:78e6c2c0c31ed1a5178e32c445becdd8a93298d604a8c3260b2cfa8487177537"
+build_stamp: "e04af71"
+project_commit: "aef8d03"
+exit_code: 0
+scope_files: {"src/commands/reconcile.ts":"sha256:eab8cb97536307ff9327e63130c8d4134b0ee575240a51d718016aad1db02883","src/program.ts":"sha256:1a362927d5c46a5276c33350b2c5f021c32afe7cc894929d9166cf6880753569","tests/reconcile-cli.test.ts":"sha256:73c24c935fa81d3f93ba2a8105fc0b3492dd58c349e1fa0231fee1bb1b63d4fd"}
+---
+2026-09-24T17:11:34.512Z

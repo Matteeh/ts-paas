@@ -6,6 +6,7 @@ import { registerDeploy } from "./commands/deploy.js";
 import { registerDoctor } from "./commands/doctor.js";
 import { registerIngressCommand } from "./commands/ingress.js";
 import { registerLogs } from "./commands/logs.js";
+import { registerReconcile } from "./commands/reconcile.js";
 import { registerStatus } from "./commands/status.js";
 import { registerStop } from "./commands/stop.js";
 import type { Clock } from "./clock.js";
@@ -61,6 +62,7 @@ export function buildProgram(
   registerLogs(program, context);
   registerStop(program, context);
   registerDoctor(program, context);
+  registerReconcile(program, context);
   registerIngressCommand(program, context);
 
   return program;

@@ -176,7 +176,10 @@ test("status prints the aligned overview with uptime and dashes", async () => {
   const result = await invoke(harness, ["status"]);
 
   assert.equal(result.code, 0, result.err);
-  assert.equal(result.err, "");
+  assert.equal(
+    result.err,
+    "paas: warning: state and engine disagree on 1 item(s); run paas reconcile --dry-run\n",
+  );
   const lines = result.out.trimEnd().split("\n");
   assert.equal(
     lines[0].replace(/ +/g, " ").trim(),

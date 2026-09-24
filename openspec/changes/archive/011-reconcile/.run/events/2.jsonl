@@ -1,0 +1,104 @@
+{"type":"verify_ran","timestamp":"2026-09-24T17:07:48.426Z","data":{"command":"node --import tsx --test tests/reconcile-cli.test.ts","exitCode":1,"duration":0.02,"output":"Could not find 'tests/reconcile-cli.test.ts'\n","phase":"pre_spawn","expected":"red","missingPaths":["tests/reconcile-cli.test.ts"],"mismatch":false}}
+{"type":"measures","timestamp":"2026-09-24T17:07:48.481Z","data":{"phase":"start","scopeResolver":2,"scopeFiles":1,"scopeLines":91,"repoFiles":191,"repoLines":22906,"importFanIn":1,"proposalWords":694,"taskWords":783,"deltaRequirements":12,"deltaScenarios":25}}
+{"type":"started","timestamp":"2026-09-24T17:07:48.626Z","data":{"harness":"pi","model":"deepseek-flash","osqVersion":"0.2.1","attempt":1,"projectCommit":"aef8d03","pid":96422,"timeoutSeconds":1800,"harnessVersion":"0.87.0","version":"0.2.1","commit":"e04af71"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:49.888Z","data":{"promptTokens":1904,"candidateTokens":167,"totalTokens":4247,"cachedTokens":2176,"reasoningTokens":15,"cost":0.000784656,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:49.889Z","data":{"tool":"read","summary":"openspec/changes/011-reconcile/tasks/2.md"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:49.889Z","data":{"tool":"read","summary":"openspec/changes/011-reconcile/proposal.md"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:51.184Z","data":{"promptTokens":2723,"candidateTokens":188,"totalTokens":7135,"cachedTokens":4224,"reasoningTokens":27,"cost":0.001067844,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:51.185Z","data":{"tool":"read","summary":"openspec/changes/011-reconcile/specs/cli/spec.md"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:51.186Z","data":{"tool":"read","summary":"openspec/changes/011-reconcile/specs/deployments/spec.md"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:52.735Z","data":{"promptTokens":2671,"candidateTokens":295,"totalTokens":10006,"cachedTokens":7040,"reasoningTokens":104,"cost":0.00119754,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:52.736Z","data":{"tool":"bash","summary":"cd . && ls -la openspec/changes"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:52.737Z","data":{"tool":"read","summary":"openspec/specs/cli/spec.md"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:54.064Z","data":{"promptTokens":1859,"candidateTokens":167,"totalTokens":12010,"cachedTokens":9984,"reasoningTokens":17,"cost":0.000818004,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:54.065Z","data":{"tool":"read","summary":"openspec/changes/011-reconcile/.run/results/1.md"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:54.065Z","data":{"tool":"read","summary":"src/deployments/reconcile.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:55.571Z","data":{"promptTokens":2083,"candidateTokens":276,"totalTokens":14263,"cachedTokens":11904,"reasoningTokens":125,"cost":0.001027524,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:55.572Z","data":{"tool":"bash","summary":"cd . && wc -l tests/ingress-dep"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:55.573Z","data":{"tool":"read","summary":"src/program.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:56.547Z","data":{"promptTokens":950,"candidateTokens":78,"totalTokens":15236,"cachedTokens":14208,"reasoningTokens":0,"cost":0.000463848,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:56.548Z","data":{"tool":"read","summary":"tests/ingress-deploy-cli.test.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:58.210Z","data":{"promptTokens":2772,"candidateTokens":244,"totalTokens":18248,"cachedTokens":15232,"reasoningTokens":45,"cost":0.0012157919999999998,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:58.211Z","data":{"tool":"read","summary":"src/commands/context.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:58.212Z","data":{"tool":"read","summary":"src/commands/doctor.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:58.212Z","data":{"tool":"read","summary":"src/output.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:07:59.585Z","data":{"promptTokens":1524,"candidateTokens":149,"totalTokens":19849,"cachedTokens":18176,"reasoningTokens":10,"cost":0.0007450559999999999,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:59.586Z","data":{"tool":"read","summary":"src/ingress/caddy.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:07:59.587Z","data":{"tool":"read","summary":"src/ingress/config.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:08:00.818Z","data":{"promptTokens":2969,"candidateTokens":148,"totalTokens":22957,"cachedTokens":19840,"reasoningTokens":9,"cost":0.0011873399999999998,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:00.818Z","data":{"tool":"read","summary":"src/deployments/engine.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:00.819Z","data":{"tool":"read","summary":"src/deployments/types.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:08:02.266Z","data":{"promptTokens":2160,"candidateTokens":177,"totalTokens":25249,"cachedTokens":22912,"reasoningTokens":38,"cost":0.000997872,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:02.267Z","data":{"tool":"read","summary":"src/commands/ingress.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:02.267Z","data":{"tool":"read","summary":"src/commands/status.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:08:03.805Z","data":{"promptTokens":2122,"candidateTokens":182,"totalTokens":27520,"cachedTokens":25216,"reasoningTokens":42,"cost":0.001006296,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:03.806Z","data":{"tool":"read","summary":"src/runtime/fake.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:03.806Z","data":{"tool":"read","summary":"src/ingress/fake-admin.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:08:05.226Z","data":{"promptTokens":1985,"candidateTokens":161,"totalTokens":29666,"cachedTokens":27520,"reasoningTokens":22,"cost":0.00095382,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:05.227Z","data":{"tool":"read","summary":"src/state/deployments.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:05.228Z","data":{"tool":"read","summary":"src/commands/deploy.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:08:25.509Z","data":{"promptTokens":2120,"candidateTokens":5099,"totalTokens":36787,"cachedTokens":29568,"reasoningTokens":4913,"cost":0.0069322080000000005,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:25.510Z","data":{"tool":"bash","summary":"cd . && grep -rn \"runReconcile\\"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:25.511Z","data":{"tool":"read","summary":"openspec/changes/011-reconcile/tasks/3.md"}}
+{"type":"tokens","timestamp":"2026-09-24T17:08:39.158Z","data":{"promptTokens":2168,"candidateTokens":2982,"totalTokens":41886,"cachedTokens":36736,"reasoningTokens":2844,"cost":0.004449216,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:39.159Z","data":{"tool":"read","summary":"tests/contract-hygiene.test.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:08:39.160Z","data":{"tool":"read","summary":"src/clock.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:09:17.771Z","data":{"promptTokens":815,"candidateTokens":9646,"totalTokens":52317,"cachedTokens":41856,"reasoningTokens":9508,"cost":0.012070836,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:09:17.772Z","data":{"tool":"read","summary":"src/deployments/health.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:09:17.772Z","data":{"tool":"read","summary":"src/runtime/types.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:09:19.625Z","data":{"promptTokens":1266,"candidateTokens":220,"totalTokens":53710,"cachedTokens":52224,"reasoningTokens":52,"cost":0.0009571439999999999,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:09:19.626Z","data":{"tool":"bash","summary":"cd . && grep -rn \"device busy\\|"}}
+{"type":"tool","timestamp":"2026-09-24T17:09:19.626Z","data":{"tool":"read","summary":"tests/reconcile-plan.test.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:09:21.727Z","data":{"promptTokens":1176,"candidateTokens":276,"totalTokens":55084,"cachedTokens":53632,"reasoningTokens":135,"cost":0.001005792,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:09:21.728Z","data":{"tool":"read","summary":"src/state/apps.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:09:21.729Z","data":{"tool":"read","summary":"tests/status-logs-cli.test.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:09:23.240Z","data":{"promptTokens":1695,"candidateTokens":142,"totalTokens":56877,"cachedTokens":55040,"reasoningTokens":25,"cost":0.00100914,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:09:23.241Z","data":{"tool":"bash","summary":"cd . && git status --short && e"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:00.595Z","data":{"promptTokens":351,"candidateTokens":9734,"totalTokens":66917,"cachedTokens":56832,"reasoningTokens":9576,"cost":0.012127091999999999,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:00.596Z","data":{"tool":"bash","summary":"cd . && grep -rn '\"--help\"\\|\\[\""}}
+{"type":"tool","timestamp":"2026-09-24T17:10:00.597Z","data":{"tool":"read","summary":"tests/cli.test.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:02.142Z","data":{"promptTokens":925,"candidateTokens":163,"totalTokens":67904,"cachedTokens":66816,"reasoningTokens":25,"cost":0.0008739959999999999,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:02.143Z","data":{"tool":"read","summary":"src/state/settings.ts"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:02.144Z","data":{"tool":"bash","summary":"cd . && cat package.json | head"}}
+{"type":"text","timestamp":"2026-09-24T17:10:10.999Z","data":{"text":"Now I have enough context. Let me write the implementation."}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:10.999Z","data":{"promptTokens":1138,"candidateTokens":3019,"totalTokens":71997,"cachedTokens":67840,"reasoningTokens":51,"cost":0.00437124,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:11.001Z","data":{"tool":"write","summary":"src/commands/reconcile.ts"}}
+{"type":"file_changed","timestamp":"2026-09-24T17:10:11.002Z","data":{"path":"src/commands/reconcile.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:13.070Z","data":{"promptTokens":212,"candidateTokens":238,"totalTokens":72258,"cachedTokens":71808,"reasoningTokens":18,"cost":0.000780048,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:13.071Z","data":{"tool":"edit","summary":"src/program.ts"}}
+{"type":"file_changed","timestamp":"2026-09-24T17:10:13.073Z","data":{"path":"src/program.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:14.976Z","data":{"promptTokens":219,"candidateTokens":95,"totalTokens":72378,"cachedTokens":72064,"reasoningTokens":11,"cost":0.0006120839999999999,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:14.976Z","data":{"tool":"bash","summary":"cd . && npx tsc -p tsconfig.jso"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:17.004Z","data":{"promptTokens":258,"candidateTokens":98,"totalTokens":72676,"cachedTokens":72320,"reasoningTokens":13,"cost":0.00062892,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:17.006Z","data":{"tool":"bash","summary":"cd . && pnpm exec tsc -p tsconf"}}
+{"type":"text","timestamp":"2026-09-24T17:10:47.933Z","data":{"text":"Now the test file:"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:47.933Z","data":{"promptTokens":242,"candidateTokens":9535,"totalTokens":82225,"cachedTokens":72448,"reasoningTokens":5624,"cost":0.011949288,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:47.935Z","data":{"tool":"write","summary":"tests/reconcile-cli.test.ts"}}
+{"type":"file_changed","timestamp":"2026-09-24T17:10:47.935Z","data":{"path":"tests/reconcile-cli.test.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:51.979Z","data":{"promptTokens":201,"candidateTokens":985,"totalTokens":83234,"cachedTokens":82048,"reasoningTokens":384,"cost":0.0017345879999999998,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:51.980Z","data":{"tool":"edit","summary":"tests/reconcile-cli.test.ts"}}
+{"type":"file_changed","timestamp":"2026-09-24T17:10:51.982Z","data":{"path":"tests/reconcile-cli.test.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:53.581Z","data":{"promptTokens":191,"candidateTokens":93,"totalTokens":83356,"cachedTokens":83072,"reasoningTokens":8,"cost":0.0006673320000000001,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:53.581Z","data":{"tool":"bash","summary":"cd . && pnpm exec tsc -p tsconf"}}
+{"type":"tokens","timestamp":"2026-09-24T17:10:55.534Z","data":{"promptTokens":170,"candidateTokens":90,"totalTokens":83460,"cachedTokens":83200,"reasoningTokens":0,"cost":0.0006582,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:10:55.535Z","data":{"tool":"bash","summary":"cd . && node --import tsx --tes"}}
+{"type":"tokens","timestamp":"2026-09-24T17:11:00.248Z","data":{"promptTokens":456,"candidateTokens":493,"totalTokens":84405,"cachedTokens":83456,"reasoningTokens":269,"cost":0.001229136,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:11:00.249Z","data":{"tool":"edit","summary":"tests/reconcile-cli.test.ts"}}
+{"type":"file_changed","timestamp":"2026-09-24T17:11:00.251Z","data":{"path":"tests/reconcile-cli.test.ts"}}
+{"type":"tokens","timestamp":"2026-09-24T17:11:01.691Z","data":{"promptTokens":210,"candidateTokens":90,"totalTokens":84524,"cachedTokens":84224,"reasoningTokens":0,"cost":0.000676344,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:11:01.692Z","data":{"tool":"bash","summary":"cd . && node --import tsx --tes"}}
+{"type":"tokens","timestamp":"2026-09-24T17:11:05.779Z","data":{"promptTokens":316,"candidateTokens":329,"totalTokens":85125,"cachedTokens":84480,"reasoningTokens":251,"cost":0.0009964800000000001,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:11:05.780Z","data":{"tool":"bash","summary":"cd . && pnpm verify 2>&1 | tail"}}
+{"type":"text","timestamp":"2026-09-24T17:11:22.381Z","data":{"text":"Both verifies pass. Now let me write the result file."}}
+{"type":"tokens","timestamp":"2026-09-24T17:11:22.381Z","data":{"promptTokens":841,"candidateTokens":2605,"totalTokens":88566,"cachedTokens":85120,"reasoningTokens":2041,"cost":0.00388902,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:11:22.382Z","data":{"tool":"write","summary":"openspec/changes/011-reconcile/.run/results/2.md"}}
+{"type":"file_changed","timestamp":"2026-09-24T17:11:22.383Z","data":{"path":"openspec/changes/011-reconcile/.run/results/2.md"}}
+{"type":"tokens","timestamp":"2026-09-24T17:11:23.971Z","data":{"promptTokens":150,"candidateTokens":129,"totalTokens":88727,"cachedTokens":88448,"reasoningTokens":25,"cost":0.000730488,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"tool","timestamp":"2026-09-24T17:11:23.971Z","data":{"tool":"bash","summary":"cd . && git status --short && e"}}
+{"type":"text","timestamp":"2026-09-24T17:11:27.825Z","data":{"text":"Done. Task 2 is implemented and both verify commands pass.\n\nSummary:\n- `src/commands/reconcile.ts` — `runReconcile` (plan → apply → redeploy → ingress push, prints nothing) plus `registerReconcile`, formatters, and the documented `ReportItem`/`ReconcileReport` exports.\n- `src/program.ts` — registered `reconcile` right after `doctor`.\n- `tests/reconcile-cli.test.ts` — 12 tests covering every acceptance line.\n- Result written to `openspec/changes/011-reconcile/.run/results/2.md`.\n\n`node --import tsx --test tests/reconcile-cli.test.ts` → 12/12 pass. `pnpm verify` → 368/368 pass with typecheck clean."}}
+{"type":"tokens","timestamp":"2026-09-24T17:11:27.825Z","data":{"promptTokens":149,"candidateTokens":223,"totalTokens":89076,"cachedTokens":88704,"reasoningTokens":49,"cost":0.0008445239999999999,"provider":"deepseek","model":"deepseek-flash"}}
+{"type":"exited","timestamp":"2026-09-24T17:11:27.852Z","data":{"exitCode":0,"pid":96422,"timedOut":false,"elapsedSeconds":219.2}}
+{"type":"verify_ran","timestamp":"2026-09-24T17:11:29.619Z","data":{"command":"node --import tsx --test tests/reconcile-cli.test.ts","exitCode":0,"duration":1.76,"output":"✔ reconcile with everything in place prints nothing to reconcile (164.818602ms)\n✔ help lists reconcile with a description (1.98029ms)\n✔ reconcile fails a deployment whose container disappeared (175.882746ms)\n✔ --dry-run --prune --redeploy changes nothing (143.153899ms)\n✔ --redeploy deploys again an app that lost its container (257.851122ms)\n✔ a stuck deployment fails but is not redeployed (121.703548ms)\n✔ an orphan is reported and left alone without --prune (48.735888ms)\n✔ --prune removes an orphan (50.728945ms)\n✔ a failed prune exits 1 and reports the error (47.526844ms)\n✔ reconcile pushes ingress when Caddy lost its routes (139.15685ms)\n✔ reconcile pushes ingress after failing a disappeared container (169.152534ms)\n✔ --dry-run --json reports the planned fail item and changes nothing (163.244416ms)\nℹ tests 12\nℹ suites 0\nℹ pass 12\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1715.180998\n"}}
+{"type":"measures","timestamp":"2026-09-24T17:11:34.509Z","data":{"phase":"end","scopeResolver":2,"scopeFiles":1,"scopeLines":91,"repoFiles":191,"repoLines":22906,"importFanIn":1,"proposalWords":694,"taskWords":783,"deltaRequirements":12,"deltaScenarios":25,"changedFiles":3,"changedLines":886,"scopeHashes":{"src/commands/reconcile.ts":{"before":null,"after":"sha256:eab8cb97536307ff9327e63130c8d4134b0ee575240a51d718016aad1db02883"},"src/program.ts":{"before":"sha256:1222f19f5ba0d9d673c9e763e0554cbeb3b468a49847f688f782223a06beba16","after":"sha256:1a362927d5c46a5276c33350b2c5f021c32afe7cc894929d9166cf6880753569"},"tests/reconcile-cli.test.ts":{"before":null,"after":"sha256:73c24c935fa81d3f93ba2a8105fc0b3492dd58c349e1fa0231fee1bb1b63d4fd"}}}}
+{"type":"done","timestamp":"2026-09-24T17:11:34.512Z","data":{"task":"2"}}
+{"type":"verify_ran","timestamp":"2026-09-24T17:12:52.036Z","data":{"command":"node --import tsx --test tests/reconcile-cli.test.ts","exitCode":0,"duration":1.73,"output":"✔ reconcile with everything in place prints nothing to reconcile (155.399599ms)\n✔ help lists reconcile with a description (2.115052ms)\n✔ reconcile fails a deployment whose container disappeared (164.363406ms)\n✔ --dry-run --prune --redeploy changes nothing (148.944797ms)\n✔ --redeploy deploys again an app that lost its container (270.045944ms)\n✔ a stuck deployment fails but is not redeployed (115.986151ms)\n✔ an orphan is reported and left alone without --prune (54.614495ms)\n✔ --prune removes an orphan (49.874079ms)\n✔ a failed prune exits 1 and reports the error (49.001543ms)\n✔ reconcile pushes ingress when Caddy lost its routes (146.180221ms)\n✔ reconcile pushes ingress after failing a disappeared container (162.96434ms)\n✔ --dry-run --json reports the planned fail item and changes nothing (162.401267ms)\nℹ tests 12\nℹ suites 0\nℹ pass 12\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1702.784968\n"}}

@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:8383e042175523315cd95b83d217bdbbe4d99f35ee0f51095ce6b1457c1e2bce"
+build_stamp: "e04af71"
+project_commit: "aef8d03"
+exit_code: 0
+scope_files: {"src/commands/status.ts":"sha256:9d2cdaef7e83e0dd7cd3885ba5494ac00dff5db3e3f3181a6a00eea02f1e3558","tests/status-drift-cli.test.ts":"sha256:44d3e9b635c6fdd783d033ed810505c75caa41652e61c1807a577a47a48226bc","tests/status-logs-cli.test.ts":"sha256:9c0784b963a5a69691744ff258bc2c79c779f67292551aa912a18fa86d17c517"}
+---
+2026-09-24T17:12:50.168Z

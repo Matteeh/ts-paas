@@ -12,12 +12,15 @@ import {
 } from "../state/deployments.js";
 import {
   contextClock,
+  getAdmin,
+  getRuntime,
   runAction,
   withStore,
   type CommandContext,
 } from "./context.js";
 import { formatTable } from "./format.js";
 import { formatUptime, shortContainerId } from "./deploy-helpers.js";
+import { runReconcile } from "./reconcile.js";
 
 const OVERVIEW_HEADERS = [
   "APP",
@@ -94,6 +97,33 @@ function formatOverview(rows: readonly Overview[]): string {
   return formatTable(OVERVIEW_HEADERS, rows.map(overviewCells));
 }
 
+/**
+ * Warn once when a dry-run reconcile would change something. Best effort: an
+ * unreachable engine or any check failure is swallowed without output.
+ */
+async function warnDrift(store: Store, context: CommandContext): Promise<void> {
+  try {
+    const runtime = getRuntime(context);
+    await runtime.ping();
+    const report = await runReconcile(
+      {
+        store,
+        runtime,
+        clock: contextClock(context),
+        admin: getAdmin(context),
+      },
+      { dryRun: true, prune: false, redeploy: false },
+    );
+    if (report.items.length > 0) {
+      context.io.err(
+        `paas: warning: state and engine disagree on ${report.items.length} item(s); run paas reconcile --dry-run\n`,
+      );
+    }
+  } catch {
+    // Status must still succeed when the engine cannot be reached.
+  }
+}
+
 function formatOne(overview: Overview, deployments: readonly Deployment[]): string {
   const overviewTable = formatTable(OVERVIEW_HEADERS, [overviewCells(overview)]);
   const historyTable = formatTable(
@@ -125,7 +155,7 @@ export function registerStatus(program: Command, context: CommandContext): void 
         command: Command,
       ) => {
         await runAction(command, async () => {
-          await withStore(context, (store) => {
+          await withStore(context, async (store) => {
             const now = contextClock(context).now();
 
             if (app === undefined) {
@@ -138,6 +168,7 @@ export function registerStatus(program: Command, context: CommandContext): void 
                 { json: options.json === true },
                 formatOverview,
               );
+              await warnDrift(store, context);
               return;
             }
 
@@ -150,6 +181,7 @@ export function registerStatus(program: Command, context: CommandContext): void 
             } else {
               context.io.out(`${formatOne(overview, deployments)}\n`);
             }
+            await warnDrift(store, context);
           });
         });
       },
