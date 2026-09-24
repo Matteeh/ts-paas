@@ -13,7 +13,7 @@ Run it after any change to `src/runtime/docker.ts`, `src/runtime/socket.ts`, `sr
   - resolves the engine socket the same way the `paas` CLI does;
   - pulls `registry.k8s.io/pause:3.10` (about 300 KB, multi-arch, runs until stopped, writes no logs);
   - tries to pull the missing image `docker.io/library/paas-contract-missing-image:0`, and expects the pull to fail;
-  - creates, starts, stops and removes containers named `contract-docker-...`, plus one network and one volume.
+  - creates, starts, stops and removes containers named `contract-<engine>-...`, plus one network and one volume.
 
 Everything it creates carries the label `paas.test=true` and is removed after every test, even when the test fails. The pulled `pause` image is the only thing left behind.
 
@@ -160,14 +160,18 @@ When a run fails:
 | 2026-09-24 | Docker Engine 24.0.7, API 1.43 | Docker Desktop, WSL 2 (Ubuntu 22.04) | 11 of 12 pass. `lists exactly the containers carrying every requested label` fails consistently. See below. |
 | 2026-09-24 | Podman for Windows 5.8.7 | Podman machine, rootless, reached from Ubuntu 22.04 on WSL 2 | Not run: the machine failed to start (pipe busy), and it offers no socket a WSL distro can use. |
 | 2026-09-24 | Podman 3.4.4, API 1.40, rootless | Ubuntu 22.04 package on WSL 2, `podman.socket` user unit | 10 of 12 pass. `pulls a present image and rejects a missing image` and `rejects a duplicate container name` fail consistently. See below. |
+| 2026-09-24 | Docker Engine 24.0.7, API 1.43 | Docker Desktop, WSL 2 (Ubuntu 22.04), after change 008 | 12 of 12, three runs. |
+| 2026-09-24 | Podman 3.4.4, API 1.40, rootless | Ubuntu 22.04 package on WSL 2, after change 008 | 12 of 12, three runs. |
 
-**Docker: container list lags behind inspect.** Right after `stopContainer` returns, `inspectContainer` reports `exited`, but `listContainers` (Docker's `/containers/json`) can still report `running` for a moment. The list view is eventually consistent. Reproduced outside the suite with `DockerRuntime` directly: stop takes about 400 ms, and the list shows the stale state immediately afterwards. The contract requires list and inspect to agree, and `reconcile` will rely on list states, so this needs a fix through a change. One option is for the adapter to confirm list states with `inspect`; another is to relax the contract and have callers use `inspect` for decisions. Podman 3.4.4 does not show this lag.
+The three failures below were fixed in change 008 (`adapter-engine-fixes`) and are recorded in the `Docker and Podman differences` requirement.
 
-**Podman: a missing image fails inside the pull stream.** Podman answers the pull request itself with success, then reports the failure as an error event in the stream: `requested access to the resource is denied` / `unauthorized: authentication required`. The adapter applies its "image not found" message rules only to HTTP 500 responses, so this becomes a plain `RuntimeError` instead of `ImageNotFoundError`. The fix is to apply the same message rules to errors inside the stream.
+**Docker: container list lags behind inspect.** Right after `stopContainer` returns, `inspectContainer` reports `exited`, but `listContainers` (Docker's `/containers/json`) can still report `running` for a moment. The list view is eventually consistent. Reproduced outside the suite with `DockerRuntime` directly: stop takes about 400 ms, and the list shows the stale state immediately afterwards. The contract requires list and inspect to agree, so since change 008 the adapter takes each listed container's state from `inspect`. Podman 3.4.4 does not show this lag.
 
-**Podman 3.4: a name conflict is a 500, not a 409.** Creating a container with a name in use returns HTTP 500 with `that name is already in use`. The adapter treats only 409 as a name conflict. The fix is to also map a create error whose message says the name is already in use to `NameConflictError`, and to check whether newer Podman versions return 409.
+**Podman: a missing image fails inside the pull stream.** Podman answers the pull request itself with success, then reports the failure as an error event in the stream: `requested access to the resource is denied` / `unauthorized: authentication required`. The adapter applies its "image not found" message rules only to HTTP 500 responses, so this becomes a plain `RuntimeError` instead of `ImageNotFoundError`. Since change 008, errors inside the stream go through the same message rules.
 
-**Minor:** the suite is labelled `docker (<socket>)` on every engine. Labelling it with the engine name from `ping` would make logs clearer.
+**Podman 3.4: a name conflict is a 500, not a 409.** Creating a container with a name in use returns HTTP 500 with `that name is already in use`. The adapter treats only 409 as a name conflict. Since change 008, a create error whose message says the name is already in use is a `NameConflictError`. Whether newer Podman versions return 409 is still unchecked.
+
+**Minor:** the suite used to be labelled `docker (<socket>)` on every engine. Since change 008 it carries the engine name from `ping`, for example `podman (/run/user/1000/podman/podman.sock)`.
 
 ## Troubleshooting
 
