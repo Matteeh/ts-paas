@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:717f07c5367f43f0e7eb1a559baf2b876869d0fb3aef9d487d81868a953ac66c"
+build_stamp: "e04af71"
+project_commit: "9ff7ce1"
+exit_code: 0
+scope_files: {"README.md":"sha256:e9a6c47dcfc3abdcf034ae43aa258437f952d1ea866b3010777a8485c1ad27ad","docs/manual-testing.md":"sha256:9b3cb9720551e82cbd5c5e2b363674530f42a51080c7963dae1b4f7517229118","tests/docs-podman.test.ts":"sha256:ee84f74fa301c1514efc87e3a2947bb8c4cf43033c0145457a905e85358e0e77"}
+---
+2026-09-24T17:46:21.423Z

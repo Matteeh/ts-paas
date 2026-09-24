@@ -5,6 +5,7 @@ import {
   ContainerNotFoundError,
   ImageNotFoundError,
   NameConflictError,
+  PortInUseError,
   RuntimeError,
   RuntimeUnavailableError,
 } from "./errors.js";
@@ -60,6 +61,33 @@ function isPodmanMissingImage(message: string): boolean {
 function engineMessage(error: unknown): string {
   const shaped = error as DockerError;
   return shaped.json?.message ?? shaped.message ?? String(error);
+}
+
+const PORT_IN_USE_PATTERNS = [
+  "address already in use",
+  "port is already allocated",
+  "ports are not available",
+];
+
+function isPortInUseMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return PORT_IN_USE_PATTERNS.some((pattern) => lower.includes(pattern));
+}
+
+const ADDRESS_PATTERNS: RegExp[] = [
+  /listen tcp (\[[^\]]+\]|[^\s:]+):(\d+)/i,
+  /Bind for (\[[^\]]+\]|[^\s:]+):(\d+)/i,
+  /exposing port TCP (\[[^\]]+\]|[^\s:]+):(\d+)/i,
+];
+
+function portInUseAddress(message: string): string | null {
+  for (const pattern of ADDRESS_PATTERNS) {
+    const match = pattern.exec(message);
+    if (match !== null) {
+      return `${match[1]}:${match[2]}`;
+    }
+  }
+  return null;
 }
 
 function pullEventMessage(event: PullEvent): string {
@@ -174,6 +202,11 @@ export class DockerRuntime implements ContainerRuntime {
         return new ContainerNotFoundError(message, { cause: error });
       }
       return new ImageNotFoundError(message, { cause: error });
+    }
+    if ((kind === "create" || kind === "container") && isPortInUseMessage(message)) {
+      return new PortInUseError(message, portInUseAddress(message), {
+        cause: error,
+      });
     }
     if (kind === "create" && shaped.statusCode === 409) {
       return new NameConflictError(message, { cause: error });

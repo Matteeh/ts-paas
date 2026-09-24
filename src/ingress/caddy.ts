@@ -137,7 +137,16 @@ async function createCaddy(
   await deps.runtime.ensureNetwork(PAAS_NETWORK);
   await deps.runtime.ensureVolume(target.volume);
   const id = await deps.runtime.createContainer(caddySpec(target, settings));
-  await deps.runtime.startContainer(id);
+  try {
+    await deps.runtime.startContainer(id);
+  } catch (error) {
+    try {
+      await deps.runtime.removeContainer(id, { force: true });
+    } catch {
+      // Ignore a failed cleanup: the start error is the one that matters.
+    }
+    throw error;
+  }
 }
 
 /** Push a config, retrying only while the admin API is unreachable. */

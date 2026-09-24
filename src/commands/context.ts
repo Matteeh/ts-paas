@@ -8,6 +8,7 @@ import type { CaddyAdmin } from "../ingress/admin.js";
 import { DEFAULT_ADMIN_URL, HttpCaddyAdmin } from "../ingress/admin.js";
 import type { Io } from "../output.js";
 import { DockerRuntime } from "../runtime/docker.js";
+import { PortInUseError } from "../runtime/errors.js";
 import { resolveSocket } from "../runtime/socket.js";
 import type { ContainerRuntime } from "../runtime/types.js";
 import { openStore, type Store } from "../state/db.js";
@@ -88,6 +89,28 @@ export async function withEngine<T>(
   });
 }
 
+const BUSY_PORT_HINT =
+  ' (on rootless Podman a leftover containers-rootlessport process can hold it; see docs/manual-testing.md)';
+
+/**
+ * The message a command prints when it fails. A busy host port names the
+ * address and how to find the process holding it; every other error keeps
+ * its own message.
+ */
+export function explainError(error: unknown): string {
+  if (error instanceof PortInUseError) {
+    const first = error.message.split("\n", 1)[0];
+    const message =
+      first === undefined || first === "" ? error.message : first;
+    if (error.address === null) {
+      return `a host port is already in use (${message}); find what holds it with "ss -ltnp"${BUSY_PORT_HINT}`;
+    }
+    const port = error.address.slice(error.address.lastIndexOf(":") + 1);
+    return `host port ${error.address} is already in use; find what holds it with "ss -ltnp | grep :${port}"${BUSY_PORT_HINT}`;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
 /** Report a usage error through the failing command, then throw. */
 export function failUsage(command: Command, message: string): never {
   command.error(`error: ${message}`, { exitCode: 2, code: "paas.usage" });
@@ -106,6 +129,9 @@ export async function runAction(
   } catch (error) {
     if (error instanceof ValidationError || error instanceof UsageError) {
       failUsage(command, error.message);
+    }
+    if (error instanceof PortInUseError) {
+      throw new Error(explainError(error));
     }
     throw error;
   }

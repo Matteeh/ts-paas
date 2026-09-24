@@ -8,7 +8,12 @@ import {
   type ReconcileOutcome,
 } from "../deployments/reconcile.js";
 import type { IngressDeps } from "../ingress/caddy.js";
-import { DEFAULT_TARGET, ingressStatus, syncIngress } from "../ingress/caddy.js";
+import {
+  DEFAULT_TARGET,
+  ingressStatus,
+  ingressUp,
+  syncIngress,
+} from "../ingress/caddy.js";
 import { desiredRoutes, type IngressRoute } from "../ingress/config.js";
 import { writeOutput } from "../output.js";
 import { listApps } from "../state/apps.js";
@@ -17,6 +22,7 @@ import {
   deploymentStatusChanges,
 } from "../state/deployments.js";
 import {
+  explainError,
   getAdmin,
   runAction,
   withEngine,
@@ -25,7 +31,13 @@ import {
 
 /** One reported reconcile item. `name` is human-only and never serialized. */
 export interface ReportItem {
-  kind: "fail" | "orphan" | "prune" | "redeploy" | "push-ingress";
+  kind:
+    | "fail"
+    | "orphan"
+    | "prune"
+    | "redeploy"
+    | "push-ingress"
+    | "start-ingress";
   app: string | null;
   deploymentId: string | null;
   containerId: string | null;
@@ -75,23 +87,26 @@ function sameRoutes(
 }
 
 interface CaddyRoutes {
-  running: boolean;
+  state: "running" | "stopped" | "missing";
   routes: IngressRoute[] | null;
 }
 
-/** Caddy's running state and routes; unreadable routes count as different. */
+/** Caddy's state and routes; unreadable routes count as different. */
 async function readCaddyRoutes(deps: IngressDeps): Promise<CaddyRoutes> {
   try {
     const status = await ingressStatus(deps);
-    return { running: status.caddy === "running", routes: status.routes };
+    return { state: status.caddy, routes: status.routes };
   } catch {
     // Reading the config failed: keep the container state, routes unknown.
     const target = deps.target ?? DEFAULT_TARGET;
     try {
       const info = await deps.runtime.inspectContainer(target.container);
-      return { running: info.state === "running", routes: null };
+      return {
+        state: info.state === "running" ? "running" : "stopped",
+        routes: null,
+      };
     } catch {
-      return { running: false, routes: null };
+      return { state: "missing", routes: null };
     }
   }
 }
@@ -297,7 +312,7 @@ export async function runReconcile(
 
   const desired = desiredRoutes(deps.store);
   const caddy = await readCaddyRoutes(deps);
-  if (caddy.running) {
+  if (caddy.state === "running") {
     const routesDiffer =
       caddy.routes === null || !sameRoutes(caddy.routes, desired);
     if (changed || routesDiffer) {
@@ -336,9 +351,34 @@ export async function runReconcile(
         }
       }
     }
+  } else if (caddy.state === "stopped") {
+    items.push(await startIngressItem(deps, options));
   }
 
   return { dryRun: options.dryRun, items };
+}
+
+/** Bring a stopped Caddy back, reporting it as one `start-ingress` item. */
+async function startIngressItem(
+  deps: IngressDeps,
+  options: { dryRun: boolean },
+): Promise<ReportItem> {
+  const base = {
+    kind: "start-ingress" as const,
+    app: null,
+    deploymentId: null,
+    containerId: null,
+    name: null,
+  };
+  if (options.dryRun) {
+    return { ...base, detail: "planned", ok: null };
+  }
+  try {
+    const result = await ingressUp(deps);
+    return { ...base, detail: `started, ${result.routes.length} routes`, ok: true };
+  } catch (error) {
+    return { ...base, detail: `failed: ${firstLine(explainError(error))}`, ok: false };
+  }
 }
 
 /** One report line for one item. */
@@ -354,6 +394,8 @@ export function formatReconcileItem(item: ReportItem): string {
       return `redeploy: ${item.app} (${item.detail})`;
     case "push-ingress":
       return `push-ingress: paas-caddy (${item.detail})`;
+    case "start-ingress":
+      return `start-ingress: paas-caddy (${item.detail})`;
   }
 }
 

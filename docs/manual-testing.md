@@ -78,6 +78,8 @@ Hostname: 05bcb38a7431
 
 Simulates a host reboot or an engine restart. paas pushes Caddy's config through its admin API, and Caddy does not keep that config across a restart.
 
+On Docker, restart the container and let reconcile push the config again:
+
 ```console
 $ docker restart paas-caddy
 $ paas ingress status
@@ -88,6 +90,22 @@ $ paas status
 paas: warning: state and engine disagree on 1 item(s); run paas reconcile --dry-run
 $ paas reconcile
 push-ingress: paas-caddy (1 routes)
+$ curl -s -H "Host: whoami.localhost" http://127.0.0.1:18080/ | head -1
+Hostname: 05bcb38a7431
+```
+
+On rootless Podman 3.4, restarting would fail to rebind the published port and leak a `containers-rootlessport` forwarder (see [Podman 3.4 port forwarders](#podman-34-port-forwarders)). Kill Caddy instead. Rootless Podman 3.4 ignores restart policies, so it stays `Exited (137)`, and reconcile starts it again:
+
+```console
+$ podman kill --signal KILL paas-caddy
+$ paas ingress status
+...
+routes:   0
+$ paas status
+...
+paas: warning: state and engine disagree on 1 item(s); run paas reconcile --dry-run
+$ paas reconcile
+start-ingress: paas-caddy (started, 1 routes)
 $ curl -s -H "Host: whoami.localhost" http://127.0.0.1:18080/ | head -1
 Hostname: 05bcb38a7431
 ```
@@ -139,6 +157,26 @@ $ docker ps -a --filter label=paas.managed=true
 ```
 
 `paas ingress down` keeps the volume on purpose, because it holds Caddy's certificates. Remove it only when you are done testing. On Podman, use `podman` for the last four commands. The final listing should be empty.
+
+## Podman 3.4 port forwarders
+
+A container that the `podman` command started or restarted can leave a `containers-rootlessport` process holding its published host ports after the container stops or is removed. The forwarder is what binds the port, and nothing cleans it up when the container goes away, so the port stays busy even though `podman ps -a` shows no container using it. paas never starts containers through the `podman` command, so the containers it manages do not leak forwarders this way.
+
+When paas reports a busy host port, confirm the leak and release it:
+
+```console
+$ ss -ltnp | grep :28080
+LISTEN 0  4096  0.0.0.0:28080  0.0.0.0:*  users:(("exe",pid=12345,fd=8))
+$ tr '\0' ' ' < /proc/12345/cmdline
+/path/to/containers-rootlessport ...
+$ podman ps -a
+CONTAINER ID  IMAGE  COMMAND  CREATED  STATUS  PORTS  NAMES
+$ kill 12345
+```
+
+`ss` names the pid that holds the port, the command line confirms it is a `containers-rootlessport` process, and `podman ps -a` shows no container using that port. If both hold, `kill <pid>` frees the port.
+
+On WSL 2, Windows relays these ports, so a leaked forwarder also blocks Docker Desktop, which reports `Ports are not available`.
 
 ## Recording results
 

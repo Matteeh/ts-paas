@@ -84,6 +84,8 @@ paas up --http-port 8080 --https-port 8443
 # then use http://whoami.localhost:8080
 ```
 
+Rootless Podman 3.4 does not restart a crashed Caddy, so run `paas reconcile` to bring it back; if a host port stays busy, see [Podman 3.4 port forwarders](docs/manual-testing.md#podman-34-port-forwarders).
+
 To break a deployment and repair it, see [docs/manual-testing.md](docs/manual-testing.md).
 
 ## Development
