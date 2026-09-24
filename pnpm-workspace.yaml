@@ -1,4 +1,7 @@
 allowBuilds:
+  cpu-features: false
   esbuild: false
+  protobufjs: false
+  ssh2: false
 minimumReleaseAgeExclude:
-  - '@matteeh/osq@0.2.0 || 0.2.1'
+  - "@matteeh/osq@0.2.0 || 0.2.1"
