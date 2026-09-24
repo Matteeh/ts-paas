@@ -1,13 +1,24 @@
 import { Command, CommanderError } from "commander";
 
 import { registerAppsCommand } from "./commands/apps.js";
+import type { CommandContext } from "./commands/context.js";
+import { registerDeploy } from "./commands/deploy.js";
+import { registerLogs } from "./commands/logs.js";
+import { registerStatus } from "./commands/status.js";
+import { registerStop } from "./commands/stop.js";
+import type { Clock } from "./clock.js";
 import { UsageError } from "./errors.js";
 import { processIo, type Io } from "./output.js";
+import type { ContainerRuntime } from "./runtime/types.js";
 import { packageVersion } from "./version.js";
 
 export function buildProgram(
   io: Io = processIo,
-  options: { env?: NodeJS.ProcessEnv } = {},
+  options: {
+    env?: NodeJS.ProcessEnv;
+    runtime?: () => ContainerRuntime;
+    clock?: Clock;
+  } = {},
 ): Command {
   const program = new Command();
 
@@ -32,7 +43,18 @@ export function buildProgram(
       program.outputHelp();
     });
 
-  registerAppsCommand(program, { io, env: options.env ?? process.env });
+  const context: CommandContext = {
+    io,
+    env: options.env ?? process.env,
+    runtime: options.runtime,
+    clock: options.clock,
+  };
+
+  registerAppsCommand(program, context);
+  registerDeploy(program, context);
+  registerStatus(program, context);
+  registerLogs(program, context);
+  registerStop(program, context);
 
   return program;
 }
