@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:0f170d629601cba6af20d51f198ce24ee364035c02a83f2af92a2dca29802a08"
+build_stamp: "e04af71"
+project_commit: "aab5671"
+exit_code: 0
+scope_files: {"src/ingress/admin.ts":"sha256:a3644506ff3e1a14b9fbb955aa89176937085f68b7e4945d51a970f9f36d1907","tests/ingress-admin-headers.test.ts":"sha256:65072b42e959e33680da07d78be2cee248829787d2252262f98acd2aa5cf15fe"}
+---
+2026-09-24T16:56:48.413Z

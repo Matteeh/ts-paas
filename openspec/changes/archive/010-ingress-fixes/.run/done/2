@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:090d0b2111c5f20377114ec20dc621f6ffe1288d3e164a0a9f343d18a9b1dddd"
+build_stamp: "e04af71"
+project_commit: "aab5671"
+exit_code: 0
+scope_files: {"docs/integration-testing.md":"sha256:f70d9a28f3a60f85ac47d857e3d36185c1019cfccf3a5ebb58ec86b217100a73","tests/integration-isolation.test.ts":"sha256:25e13df1fdd86025153d37a695ede01eb1e9d0a47dac2f286a4e7d89d8d5ce0e","tests/integration/ingress.itest.ts":"sha256:14b0219c1fb0638253ed39c6296dcd21f27e26b726d9df47fc3ce5ff1d6919d7"}
+---
+2026-09-24T16:57:36.069Z

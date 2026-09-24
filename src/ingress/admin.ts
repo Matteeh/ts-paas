@@ -1,3 +1,4 @@
+import { request as httpRequest } from "node:http";
 import type { CaddyConfig } from "./config.js";
 
 /** The admin URL paas talks to by default. */
@@ -17,7 +18,7 @@ export class IngressError extends Error {
   }
 }
 
-/** `fetch` could not reach Caddy's admin API at all. */
+/** A request could not reach Caddy's admin API at all. */
 export class AdminUnreachableError extends IngressError {}
 
 /** Caddy's admin API answered with a non-2xx status. */
@@ -30,18 +31,12 @@ export class AdminRequestError extends IngressError {
   }
 }
 
-/** The message for an unreachable admin API: `cause.code`, else its message. */
+/** The message for an unreachable admin API: `error.code`, else its message. */
 function unreachableCause(error: unknown): string {
   if (typeof error === "object" && error !== null) {
-    const cause = (error as { cause?: unknown }).cause;
-    if (typeof cause === "object" && cause !== null) {
-      const code = (cause as { code?: unknown }).code;
-      if (typeof code === "string") {
-        return code;
-      }
-      if (cause instanceof Error) {
-        return cause.message;
-      }
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "string") {
+      return code;
     }
     if (error instanceof Error) {
       return error.message;
@@ -55,6 +50,11 @@ function firstLine(body: string): string {
   return index === -1 ? body : body.slice(0, index);
 }
 
+interface AdminRequestInit {
+  method: string;
+  body?: string;
+}
+
 /** Talks to Caddy over its HTTP admin API. */
 export class HttpCaddyAdmin implements CaddyAdmin {
   private readonly baseUrl: string;
@@ -66,34 +66,71 @@ export class HttpCaddyAdmin implements CaddyAdmin {
   async load(config: CaddyConfig): Promise<void> {
     await this.request("/load", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(config),
     });
   }
 
   async getConfig(): Promise<unknown> {
-    const response = await this.request("/config/", { method: "GET" });
-    return response.json();
+    const body = await this.request("/config/", { method: "GET" });
+    if (body === "") {
+      return null;
+    }
+    return JSON.parse(body);
   }
 
-  private async request(path: string, init: RequestInit): Promise<Response> {
-    let response: Response;
-    try {
-      response = await fetch(`${this.baseUrl}${path}`, init);
-    } catch (error) {
-      throw new AdminUnreachableError(
-        `cannot reach Caddy admin API at ${this.baseUrl}: ${unreachableCause(error)}`,
-      );
+  private request(path: string, init: AdminRequestInit): Promise<string> {
+    const url = new URL(`${this.baseUrl}${path}`);
+    const headers: Record<string, string> = {};
+    if (init.body !== undefined) {
+      headers["Content-Type"] = "application/json";
+      headers["Content-Length"] = String(Buffer.byteLength(init.body));
     }
 
-    if (!response.ok) {
-      const body = await response.text();
-      throw new AdminRequestError(
-        response.status,
-        `Caddy admin API answered ${response.status}: ${firstLine(body)}`,
+    return new Promise<string>((resolve, reject) => {
+      const req = httpRequest(
+        {
+          hostname: url.hostname,
+          port: url.port,
+          path: `${url.pathname}${url.search}`,
+          method: init.method,
+          headers,
+          // A fresh socket per request so no kept-alive socket holds the CLI open.
+          agent: false,
+        },
+        (res) => {
+          let body = "";
+          res.setEncoding("utf8");
+          res.on("data", (chunk: string) => {
+            body += chunk;
+          });
+          res.on("end", () => {
+            const status = res.statusCode ?? 0;
+            if (status < 200 || status >= 300) {
+              reject(
+                new AdminRequestError(
+                  status,
+                  `Caddy admin API answered ${status}: ${firstLine(body)}`,
+                ),
+              );
+              return;
+            }
+            resolve(body);
+          });
+        },
       );
-    }
 
-    return response;
+      req.on("error", (error) => {
+        reject(
+          new AdminUnreachableError(
+            `cannot reach Caddy admin API at ${this.baseUrl}: ${unreachableCause(error)}`,
+          ),
+        );
+      });
+
+      if (init.body !== undefined) {
+        req.write(init.body);
+      }
+      req.end();
+    });
   }
 }

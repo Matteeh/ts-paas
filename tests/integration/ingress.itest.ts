@@ -17,6 +17,12 @@ const HTTPS_PORT = 18443;
 const ADMIN_PORT = 12019;
 const ADMIN_URL = "http://127.0.0.1:12019";
 
+/**
+ * Everything this run creates carries this label, kept apart from the
+ * contract suite's `paas.test=true` so the two files can run in parallel.
+ */
+const TEST_LABELS = { "paas.test": "ingress" };
+
 if (process.env.PAAS_INTEGRATION !== "1") {
   test(
     "ingress integration",
@@ -27,11 +33,11 @@ if (process.env.PAAS_INTEGRATION !== "1") {
   const socketPath = resolveSocket(process.env).path;
   const runtime = new DockerRuntime({
     socketPath,
-    labels: { "paas.test": "true" },
+    labels: TEST_LABELS,
   });
 
   after(async () => {
-    await runtime.removeLabelled({ "paas.test": "true" });
+    await runtime.removeLabelled(TEST_LABELS);
   });
 
   interface HttpResult {
