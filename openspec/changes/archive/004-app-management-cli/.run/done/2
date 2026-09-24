@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:b91a9621516a498d1688168b08e57cd65df9b1c2c80f7095b7d0fe7b09bb71cc"
+build_stamp: "2fa99df2"
+project_commit: "73502f9"
+exit_code: 0
+scope_files: {"src/commands/apps-create.ts":"sha256:d2bcae6c5c7ab9852ff183d12c62ab2d6936df7c60c5f73513075b61fbf8c398","src/commands/apps-delete.ts":"sha256:720a59c425bccb28e907a051df3698929e110f9f57a9fe22cee90df071478b83","src/commands/apps-list.ts":"sha256:5a250a3ae1acc92701fb7af0e94fb019df65fcb39b05643fa689f51151362a8e","src/commands/apps-set.ts":"sha256:09447dd26b83c3946fb7a7d889a4366188f78fc4b76519c3260da3fb20d86ab4","src/commands/apps-show.ts":"sha256:748b180b15fa7df8506df404b9f785409d017055423b5f2cdf6747c77d4d614e","src/commands/apps.ts":"sha256:079e29d10331434a8e955a81e434a76fd7cc57e1d47a1103ba9a11bd4bed4679","src/program.ts":"sha256:ff08e39b01a7045e7ab38db6705900623e6676c4271a3e2815014dc5a4723fcb","tests/apps-cli.test.ts":"sha256:aef07117b0a2d6acdbe906d47716b334000fbb061aaf1043b6bd066cdb37793c"}
+---
+2026-09-24T09:24:01.616Z

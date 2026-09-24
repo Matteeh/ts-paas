@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:6e4d90cd1910189a869f4b859867d2d7388c3e5c63ef7d472bf2791cd0e403d4"
+build_stamp: "2fa99df2"
+project_commit: "73502f9"
+exit_code: 0
+scope_files: {"src/commands/context.ts":"sha256:a446fb3b9c2012c6759714829411bf523e10214f1515435b4991c52f621a36ed","src/commands/format.ts":"sha256:e851219de90571874149a0fbac6652b2d2b61f767b6b4911e0bebcc20bbfbb8a","tests/commands-helpers.test.ts":"sha256:81ce1de55eb0e71c4905525675c051edbc47ce1427e3472005094b9dc8c95e90"}
+---
+2026-09-24T09:21:45.622Z

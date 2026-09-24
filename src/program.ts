@@ -1,10 +1,14 @@
 import { Command, CommanderError } from "commander";
 
+import { registerAppsCommand } from "./commands/apps.js";
 import { UsageError } from "./errors.js";
 import { processIo, type Io } from "./output.js";
 import { packageVersion } from "./version.js";
 
-export function buildProgram(io: Io = processIo): Command {
+export function buildProgram(
+  io: Io = processIo,
+  options: { env?: NodeJS.ProcessEnv } = {},
+): Command {
   const program = new Command();
 
   program
@@ -27,6 +31,8 @@ export function buildProgram(io: Io = processIo): Command {
     .action(() => {
       program.outputHelp();
     });
+
+  registerAppsCommand(program, { io, env: options.env ?? process.env });
 
   return program;
 }
