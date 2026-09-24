@@ -2,7 +2,7 @@ import { after, test } from "node:test";
 
 import { DockerRuntime } from "../../src/runtime/docker.js";
 import { resolveSocket } from "../../src/runtime/socket.js";
-import { runtimeContract } from "../support/runtime-contract.js";
+import { engineLabel, runtimeContract } from "../support/runtime-contract.js";
 
 if (process.env.PAAS_INTEGRATION !== "1") {
   test(
@@ -21,7 +21,9 @@ if (process.env.PAAS_INTEGRATION !== "1") {
     await runtime.removeLabelled({ "paas.test": "true" });
   });
 
-  runtimeContract(`docker (${socketPath})`, async () => ({
+  const info = await runtime.ping();
+
+  runtimeContract(engineLabel(info), async () => ({
     runtime,
     images: {
       present: "registry.k8s.io/pause:3.10",

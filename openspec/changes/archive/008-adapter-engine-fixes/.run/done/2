@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:db684fc342c5a6d1766a7941d911dec65b048d238e9e9ea9a098f1dbf87cd6f9"
+build_stamp: "e04af71"
+project_commit: "dab3b9a"
+exit_code: 0
+scope_files: {"tests/contract-hygiene.test.ts":"sha256:be4301989407aa90c3229a1d7390511358649a20c001e61fcefd970827fe38b9","tests/deploy-engine.test.ts":"sha256:a0fbd8779a0bde89f2804e75549e4dfc4ae3119c6e994cb0c4839f540742aa27","tests/deploy-health.test.ts":"sha256:d1cf918f712c78bdef125f44939e6958e8aa464af0498bd581eabbf1e3cced4b","tests/deploy-stop.test.ts":"sha256:a343847e1dd7172046681f809794653f1cc909d18bd6440a1ecb95b09d82b15a","tests/integration/docker.itest.ts":"sha256:4173092378c5cfdad0f11eacab47af213abed5b3bf66a416b817d117a6fd0e06","tests/support/runtime-contract.ts":"sha256:d1db540c04258e25f4cb10527a012091f5f0f5d0b655c06adc03970fd4a0bd2a"}
+---
+2026-09-24T15:52:23.048Z

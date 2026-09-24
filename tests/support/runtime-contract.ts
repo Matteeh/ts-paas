@@ -8,17 +8,10 @@ import {
   RuntimeError,
 } from "../../src/runtime/errors.js";
 import { MANAGED_LABEL } from "../../src/runtime/types.js";
-import type { ContainerRuntime } from "../../src/runtime/types.js";
+import type { ContainerRuntime, EngineInfo } from "../../src/runtime/types.js";
 
-// The preexisting deploy test doubles implement `ContainerRuntime` but predate
-// `networkExists`. They are frozen for this change, so grant every object type
-// the member during the test typecheck. `src/runtime/types.ts` still declares
-// it on `ContainerRuntime`; no source file relies on the global, and
-// `pnpm build` compiles only `src`, where this declaration is absent.
-declare global {
-  interface Object {
-    networkExists(name: string): Promise<boolean>;
-  }
+export function engineLabel(info: EngineInfo): string {
+  return `${info.name} (${info.endpoint ?? "unknown endpoint"})`;
 }
 
 export interface ContractHarness {

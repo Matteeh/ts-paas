@@ -137,6 +137,10 @@ class DelegatingRuntime implements ContainerRuntime {
     return this.inner.ensureNetwork(name);
   }
 
+  networkExists(name: string): Promise<boolean> {
+    return this.inner.networkExists(name);
+  }
+
   ensureVolume(name: string): Promise<void> {
     return this.inner.ensureVolume(name);
   }

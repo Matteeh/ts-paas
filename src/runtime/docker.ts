@@ -52,7 +52,8 @@ function isPodmanMissingImage(message: string): boolean {
   return (
     lower.includes("manifest unknown") ||
     lower.includes("does not exist") ||
-    lower.includes("access denied")
+    lower.includes("access denied") ||
+    lower.includes("access to the resource is denied")
   );
 }
 
@@ -112,13 +113,16 @@ function toContainerInfo(info: Docker.ContainerInspectInfo): ContainerInfo {
   };
 }
 
-function toContainerSummary(info: Docker.ContainerInfo): ContainerSummary {
+function toContainerSummary(
+  info: Docker.ContainerInfo,
+  state: ContainerState,
+): ContainerSummary {
   return {
     id: info.Id,
     name: (info.Names[0] ?? "").replace(/^\//, ""),
     image: info.Image,
     labels: info.Labels ?? {},
-    state: mapState(info.State),
+    state,
   };
 }
 
@@ -146,6 +150,13 @@ export class DockerRuntime implements ContainerRuntime {
     this.labels = options.labels ?? {};
   }
 
+  private mapPullMessage(message: string, cause: unknown): RuntimeError {
+    if (isPodmanMissingImage(message)) {
+      return new ImageNotFoundError(message, { cause });
+    }
+    return new RuntimeError(message, { cause });
+  }
+
   private mapError(error: unknown, kind: ErrorKind): RuntimeError {
     if (error instanceof RuntimeError) {
       return error;
@@ -168,11 +179,14 @@ export class DockerRuntime implements ContainerRuntime {
       return new NameConflictError(message, { cause: error });
     }
     if (
-      kind === "pull" &&
+      kind === "create" &&
       shaped.statusCode === 500 &&
-      isPodmanMissingImage(message)
+      message.toLowerCase().includes("already in use")
     ) {
-      return new ImageNotFoundError(message, { cause: error });
+      return new NameConflictError(message, { cause: error });
+    }
+    if (kind === "pull" && shaped.statusCode === 500) {
+      return this.mapPullMessage(message, error);
     }
     return new RuntimeError(message, { cause: error });
   }
@@ -212,7 +226,7 @@ export class DockerRuntime implements ContainerRuntime {
             );
             if (failed !== undefined) {
               reject(
-                new RuntimeError(pullEventMessage(failed), { cause: failed }),
+                this.mapPullMessage(pullEventMessage(failed), failed),
               );
               return;
             }
@@ -352,7 +366,22 @@ export class DockerRuntime implements ContainerRuntime {
         all: true,
         filters: labelFilters(labels),
       });
-      return infos.map(toContainerSummary);
+      const summaries: ContainerSummary[] = [];
+      for (const info of infos) {
+        let inspected: Docker.ContainerInspectInfo;
+        try {
+          inspected = await this.client.getContainer(info.Id).inspect();
+        } catch (error) {
+          if (isStatus(error, 404)) {
+            continue;
+          }
+          throw this.mapError(error, "container");
+        }
+        summaries.push(
+          toContainerSummary(info, mapState(inspected.State.Status)),
+        );
+      }
+      return summaries;
     } catch (error) {
       throw this.mapError(error, "container");
     }

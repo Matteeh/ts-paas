@@ -69,7 +69,7 @@ class DockerStub {
       },
       inspect: (...args: any[]) => {
         stub.containerCalls.push({ id, method: "inspect", args });
-        return stub.containerHandlers.inspect?.(...args);
+        return stub.containerHandlers.inspect?.(id, ...args);
       },
       logs: (...args: any[]) => {
         stub.containerCalls.push({ id, method: "logs", args });
@@ -290,8 +290,8 @@ test("pullImage resolves only after followProgress finishes", async () => {
 
 test("pullImage rejects when an output event carries an error", async () => {
   for (const event of [
-    { error: "manifest unknown" },
-    { errorDetail: { message: "pull access denied" } },
+    { error: "something else broke" },
+    { errorDetail: { message: "stream broke" } },
   ]) {
     const stub = new DockerStub();
     stub.handlers.pull = () => Promise.resolve({});
@@ -524,6 +524,10 @@ test("listContainers sends all and one label filter entry per label", async () =
         State: "exited",
       }),
     ]);
+  stub.containerHandlers.inspect = (id: string) =>
+    Promise.resolve({
+      State: { Status: id === "id-2" ? "exited" : "running" },
+    });
   const summaries = await runtimeWith(stub).listContainers({
     "paas.app": "web",
     "paas.managed": "true",
