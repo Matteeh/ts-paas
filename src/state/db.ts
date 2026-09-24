@@ -40,6 +40,12 @@ export const MIGRATIONS: readonly string[] = [
     at TEXT NOT NULL
   );
   `,
+  `
+  CREATE TABLE settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+  `,
 ];
 
 export interface Store {

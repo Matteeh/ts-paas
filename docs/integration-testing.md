@@ -19,6 +19,19 @@ Everything it creates carries the label `paas.test=true` and is removed after ev
 
 The run needs network access to `registry.k8s.io` and Docker Hub. It takes about 10 seconds once the image is cached.
 
+## Ingress test
+
+`tests/integration/ingress.itest.ts` is a second `.itest.ts` file, so `pnpm test:integration` runs it alongside the runtime contract. Without `PAAS_INTEGRATION=1` it registers one skipped test, exactly like the contract file.
+
+With `PAAS_INTEGRATION=1` it brings up a real Caddy and routes a real app through it:
+
+- It pulls `docker.io/library/caddy:2` and `docker.io/traefik/whoami:v1.11.0`.
+- It binds host port 18080 to Caddy's HTTP port 80 and host port 18443 to its HTTPS port 443, and publishes Caddy's admin port as 12019 on `127.0.0.1` only.
+- It uses its own container `paas-test-caddy`, volume `paas-test-caddy-data` and admin port, so it leaves a real `paas-caddy` alone. Everything it creates carries `paas.test=true` and is removed afterwards, even when the test fails.
+- It deploys `whoami` with the hostname `whoami.localhost`, requests it on the host port with that `Host` header and expects a 200 whose body contains `Hostname: `, then checks that `Host: other.localhost` is not routed to it.
+
+On Podman 3.4, a 502 from that request means containers on `paas-net` cannot resolve each other by name: that Podman's CNI networks need the `dnsname` plugin (Ubuntu package `golang-github-containernetworking-plugin-dnsname`). Install it, remove `paas-net`, and run again.
+
 ## Before you run it
 
 1. Install dependencies: `pnpm install`.

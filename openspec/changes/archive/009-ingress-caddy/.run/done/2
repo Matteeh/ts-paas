@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:c3ee691af8ac32426507ac891ecd941807d4c9bc17b55d437fbd94deba948102"
+build_stamp: "e04af71"
+project_commit: "1a38952"
+exit_code: 0
+scope_files: {"src/ingress/admin.ts":"sha256:9ba619325dc16ff0ffc201a289762972188bc15a74a9156338eabe0f3d22c3bb","src/ingress/config.ts":"sha256:4bc9863f509efbd0df6349451aa6be3a3999bf87641dbc6e2acdf55a9b79e2e7","src/ingress/fake-admin.ts":"sha256:8ff8b2ae5acb656ee4cba91bff389362886721485b3470cd52e7b7b80240bf7f","tests/ingress-admin.test.ts":"sha256:bdd53f7460943c6fcffe4445bb72c1876672f592e808be6a7d6915c2bbce6b79","tests/ingress-config.test.ts":"sha256:830533495b977dae783ee08c6415cbf07e0fb08493271cd13eeb6be3bfe8d993"}
+---
+2026-09-24T16:39:10.727Z

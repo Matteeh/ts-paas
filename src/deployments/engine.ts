@@ -25,6 +25,12 @@ import {
 export interface DeployOptions {
   healthWindowMs?: number;
   stopTimeoutSeconds?: number;
+  /**
+   * Awaited once, with the new deployment, after it is `running` and before
+   * any previous deployment is replaced. A rejection rejects `deploy` and
+   * leaves the new and every previous deployment running.
+   */
+  onRunning?: (deployment: Deployment) => Promise<void>;
 }
 
 /** The first line of an error, so progress messages stay one line. */
@@ -121,7 +127,8 @@ async function replacePrevious(
 /**
  * Take an app from its stored image to a running container, recording every
  * status change. Resolves with the final deployment (running or failed) and
- * only rejects when the app is unknown or another deploy is in progress.
+ * only rejects when the app is unknown, another deploy is in progress, or its
+ * `onRunning` hook rejects.
  */
 export async function deploy(
   deps: EngineDeps,
@@ -207,9 +214,6 @@ export async function deploy(
       status: "running",
       message: `container ${containerName(app, deployment.id)} is running`,
     });
-
-    await replacePrevious(deps, app, deployment.id, options);
-    return getDeployment(store, deployment.id);
   } catch (error) {
     if (containerId !== null) {
       await forceRemove(runtime, containerId);
@@ -223,4 +227,14 @@ export async function deploy(
     });
     return getDeployment(store, deployment.id);
   }
+
+  // The new deployment is running. The hook and the replacement run outside
+  // the try above so a rejected hook cannot fail the deployment or take down
+  // the container. The previous deployment stays until the hook resolves.
+  if (options.onRunning !== undefined) {
+    await options.onRunning(getDeployment(store, deployment.id));
+  }
+
+  await replacePrevious(deps, app, deployment.id, options);
+  return getDeployment(store, deployment.id);
 }

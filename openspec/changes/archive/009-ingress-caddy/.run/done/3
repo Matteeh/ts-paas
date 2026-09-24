@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:05b14730f713ce103faa958b8db781d26e4d829da3c3046342c6d7970e875027"
+build_stamp: "e04af71"
+project_commit: "1a38952"
+exit_code: 0
+scope_files: {"src/ingress/caddy.ts":"sha256:643f405197f8aa59fdb16d0377edcf9517babda0e09213e50479dc9fe2d84080","tests/ingress-caddy.test.ts":"sha256:deec00c4644534aac92dc300f6d8b5f06d6e8495e3dceebc752c5132dc709df2"}
+---
+2026-09-24T16:40:45.423Z

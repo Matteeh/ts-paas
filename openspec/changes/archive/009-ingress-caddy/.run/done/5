@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:77b3fb6d1eadae521887956ef52d3f6955ea7c4b8a57bde2723c4a775f477b66"
+build_stamp: "e04af71"
+project_commit: "1a38952"
+exit_code: 0
+scope_files: {"src/commands/context.ts":"sha256:10c71c4b94e185abcb0cbd3e6fab36590ef6c4f96197b4a3842ab63bafd42db3","src/commands/ingress.ts":"sha256:3703db136637d4514bb1040f6ea154f624fec361f1e96e8805c2bf8fc5210ec8","src/program.ts":"sha256:1222f19f5ba0d9d673c9e763e0554cbeb3b468a49847f688f782223a06beba16","tests/ingress-cli.test.ts":"sha256:f6f5f212bd5e231df9bc362657e88c300a5e6869d2710257d0145f2dfd4d5686"}
+---
+2026-09-24T16:43:27.895Z

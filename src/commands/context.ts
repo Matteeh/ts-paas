@@ -4,6 +4,8 @@ import type { Clock } from "../clock.js";
 import { systemClock } from "../clock.js";
 import type { EngineDeps } from "../deployments/types.js";
 import { UsageError } from "../errors.js";
+import type { CaddyAdmin } from "../ingress/admin.js";
+import { DEFAULT_ADMIN_URL, HttpCaddyAdmin } from "../ingress/admin.js";
 import type { Io } from "../output.js";
 import { DockerRuntime } from "../runtime/docker.js";
 import { resolveSocket } from "../runtime/socket.js";
@@ -19,6 +21,8 @@ export interface CommandContext {
   runtime?: () => ContainerRuntime;
   /** The clock shared by the store, the runtime and the engine. */
   clock?: Clock;
+  /** The Caddy admin factory; defaults to {@link HttpCaddyAdmin} on loopback. */
+  admin?: () => CaddyAdmin;
 }
 
 /** The default runtime factory: the Docker adapter on the resolved socket. */
@@ -36,6 +40,13 @@ export function getRuntime(context: CommandContext): ContainerRuntime {
 /** The context's clock, or the system clock when none was injected. */
 export function contextClock(context: CommandContext): Clock {
   return context.clock ?? systemClock;
+}
+
+/** The context's Caddy admin client, or the default loopback one. */
+export function getAdmin(context: CommandContext): CaddyAdmin {
+  return context.admin
+    ? context.admin()
+    : new HttpCaddyAdmin(DEFAULT_ADMIN_URL);
 }
 
 /**

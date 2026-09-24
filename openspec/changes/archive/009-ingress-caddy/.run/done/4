@@ -1,0 +1,9 @@
+---
+scope_resolver: 2
+scope_hash: "sha256:02524f15af909451659b42d3e3817e34acd5fd1e99090da5eb9ab4c574664e11"
+build_stamp: "e04af71"
+project_commit: "1a38952"
+exit_code: 0
+scope_files: {"src/deployments/engine.ts":"sha256:927a7ac07b8abef86b137c8aa14a78d5baf71a5eb88c767f7610eef2b4673462","tests/deploy-hook.test.ts":"sha256:23c8421ca0461191a0f1db7812e0d49f19a9d9d21a8bf39cabb58b62a6534c4b"}
+---
+2026-09-24T16:41:47.013Z

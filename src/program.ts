@@ -4,11 +4,13 @@ import { registerAppsCommand } from "./commands/apps.js";
 import type { CommandContext } from "./commands/context.js";
 import { registerDeploy } from "./commands/deploy.js";
 import { registerDoctor } from "./commands/doctor.js";
+import { registerIngressCommand } from "./commands/ingress.js";
 import { registerLogs } from "./commands/logs.js";
 import { registerStatus } from "./commands/status.js";
 import { registerStop } from "./commands/stop.js";
 import type { Clock } from "./clock.js";
 import { UsageError } from "./errors.js";
+import type { CaddyAdmin } from "./ingress/admin.js";
 import { processIo, type Io } from "./output.js";
 import type { ContainerRuntime } from "./runtime/types.js";
 import { packageVersion } from "./version.js";
@@ -19,6 +21,7 @@ export function buildProgram(
     env?: NodeJS.ProcessEnv;
     runtime?: () => ContainerRuntime;
     clock?: Clock;
+    admin?: () => CaddyAdmin;
   } = {},
 ): Command {
   const program = new Command();
@@ -49,6 +52,7 @@ export function buildProgram(
     env: options.env ?? process.env,
     runtime: options.runtime,
     clock: options.clock,
+    admin: options.admin,
   };
 
   registerAppsCommand(program, context);
@@ -57,6 +61,7 @@ export function buildProgram(
   registerLogs(program, context);
   registerStop(program, context);
   registerDoctor(program, context);
+  registerIngressCommand(program, context);
 
   return program;
 }
